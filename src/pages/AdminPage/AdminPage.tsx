@@ -519,40 +519,40 @@ export default function AdminPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="animate-fade-in-up stagger-delay-1 mb-5 grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
+      <div className="animate-fade-in-up stagger-delay-1 mb-5 grid grid-cols-3 gap-2 md:grid-cols-3 md:gap-4">
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-blue-500/15 blur-2xl" />
-          <CardContent className="relative flex items-center gap-3 p-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-500/25 to-cyan-500/10 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.15)]">
-              <Users className="h-5 w-5" />
+          <CardContent className="relative flex items-center gap-2 p-2.5 md:gap-3 md:p-3.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-500/25 to-cyan-500/10 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.15)] md:h-11 md:w-11">
+              <Users className="h-4 w-4 md:h-5 md:w-5" />
             </div>
             <div>
-              <p className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-2xl font-bold text-transparent">{users.length}</p>
-              <p className="text-xs text-slate-500">用户</p>
+              <p className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-lg font-bold text-transparent md:text-2xl">{users.length}</p>
+              <p className="text-[10px] text-slate-500 md:text-xs">用户</p>
             </div>
           </CardContent>
         </Card>
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-purple-500/15 blur-2xl" />
           <CardContent className="relative flex items-center gap-3 p-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/10 text-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.15)]">
-              <MessageSquare className="h-5 w-5" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/10 text-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.15)] md:h-11 md:w-11">
+              <MessageSquare className="h-4 w-4 md:h-5 md:w-5" />
             </div>
             <div>
-              <p className="bg-gradient-to-r from-purple-300 to-fuchsia-300 bg-clip-text text-2xl font-bold text-transparent">{posts.length}</p>
-              <p className="text-xs text-slate-500">帖子</p>
+              <p className="bg-gradient-to-r from-purple-300 to-fuchsia-300 bg-clip-text text-lg font-bold text-transparent md:text-2xl">{posts.length}</p>
+              <p className="text-[10px] text-slate-500 md:text-xs">帖子</p>
             </div>
           </CardContent>
         </Card>
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-emerald-500/15 blur-2xl" />
           <CardContent className="relative flex items-center gap-3 p-3.5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 to-teal-500/10 text-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.15)]">
-              <FileText className="h-5 w-5" />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 to-teal-500/10 text-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.15)] md:h-11 md:w-11">
+              <FileText className="h-4 w-4 md:h-5 md:w-5" />
             </div>
             <div>
-              <p className="bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-2xl font-bold text-transparent">{services.length}</p>
-              <p className="text-xs text-slate-500">服务</p>
+              <p className="bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-lg font-bold text-transparent md:text-2xl">{services.length}</p>
+              <p className="text-[10px] text-slate-500 md:text-xs">服务</p>
             </div>
           </CardContent>
         </Card>
