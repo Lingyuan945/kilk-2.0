@@ -120,9 +120,9 @@ export default function LingPage() {
         </div>
       </section>
 
-      {/* ===== 技能 ===== */}
+      {/* ===== 技术栈 ===== */}
       <section className="mb-14">
-        <SectionHeading eyebrow="Capabilities" title="技术栈与能力" />
+        <SectionHeading eyebrow="Capabilities" title="技术栈" />
         <div className="grid gap-x-14 gap-y-7 md:grid-cols-2">
           {profile.skills.map((skill, index) => (
             <Reveal key={skill.name} delay={(index % 2) * 0.06}>
