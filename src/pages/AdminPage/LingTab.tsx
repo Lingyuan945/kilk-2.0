@@ -19,7 +19,6 @@ import type {
   LingProfile,
   LingProject,
   LingSkill,
-  LingSocial,
   LingTimelineItem,
 } from '@/types';
 
@@ -35,7 +34,6 @@ const EMPTY_PROJECT: LingProject = {
   year: '',
 };
 const EMPTY_TIMELINE: LingTimelineItem = { period: '', title: '', org: '', description: '' };
-const EMPTY_SOCIAL: LingSocial = { label: '', handle: '', href: '', icon: 'github' };
 const EMPTY_CONTACT: LingContact = { label: '', value: '', href: '' };
 
 const inputClass = 'border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500';
@@ -107,7 +105,7 @@ function SkillRows({
   );
 }
 
-/** 项目编辑行 */
+/** 技术支持分类编辑行 */
 function ProjectRows({
   projects,
   onChange,
@@ -122,15 +120,9 @@ function ProjectRows({
           <div className="flex gap-2">
             <Input
               value={project.title}
-              placeholder="项目名称"
+              placeholder="分类名称（前端 / 后端 / 数据库）"
               onChange={(e) => onChange(updateItem(projects, i, { title: e.target.value }))}
               className={inputClass}
-            />
-            <Input
-              value={project.year}
-              placeholder="年份"
-              onChange={(e) => onChange(updateItem(projects, i, { year: e.target.value }))}
-              className={`${inputClass} w-28`}
             />
             <Button
               type="button"
@@ -138,40 +130,32 @@ function ProjectRows({
               size="icon"
               className="shrink-0 text-red-400 hover:bg-red-500/10 hover:text-red-400"
               onClick={() => onChange(projects.filter((_, j) => j !== i))}
-              aria-label="删除项目"
+              aria-label="删除分类"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
           <Textarea
             value={project.description}
-            placeholder="项目描述"
+            placeholder="分类描述"
             onChange={(e) => onChange(updateItem(projects, i, { description: e.target.value }))}
             className={`${inputClass} min-h-[56px]`}
           />
-          <div className="flex gap-2">
-            <Input
-              value={project.tech.join(', ')}
-              placeholder="技术栈（逗号分隔）"
-              onChange={(e) =>
-                onChange(
-                  updateItem(projects, i, {
-                    tech: e.target.value
-                      .split(',')
-                      .map((t) => t.trim())
-                      .filter(Boolean),
-                  })
-                )
-              }
-              className={inputClass}
-            />
-            <Input
-              value={project.highlight}
-              placeholder="亮点（如：500+ Star）"
-              onChange={(e) => onChange(updateItem(projects, i, { highlight: e.target.value }))}
-              className={inputClass}
-            />
-          </div>
+          <Input
+            value={project.tech.join(', ')}
+            placeholder="技术名称（逗号分隔，如：React, Node.js, PostgreSQL）"
+            onChange={(e) =>
+              onChange(
+                updateItem(projects, i, {
+                  tech: e.target.value
+                    .split(',')
+                    .map((t) => t.trim())
+                    .filter(Boolean),
+                })
+              )
+            }
+            className={inputClass}
+          />
         </div>
       ))}
       <Button
@@ -183,7 +167,7 @@ function ProjectRows({
           onChange([...projects, { ...EMPTY_PROJECT, id: Date.now() }])
         }
       >
-        <Plus className="mr-1 h-4 w-4" /> 添加项目
+        <Plus className="mr-1 h-4 w-4" /> 添加分类
       </Button>
     </div>
   );
@@ -409,14 +393,6 @@ export default function LingTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-slate-400">所在位置</Label>
-              <Input
-                value={profile.location}
-                onChange={(e) => updateField('location', e.target.value)}
-                className={inputClass}
-              />
-            </div>
-            <div className="space-y-2">
               <Label className="text-xs text-slate-400">邮箱</Label>
               <Input
                 value={profile.email}
@@ -425,13 +401,18 @@ export default function LingTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-slate-400">头像首字母</Label>
+              <Label className="text-xs text-slate-400">头像首字母（无头像时显示）</Label>
               <Input
                 value={profile.avatar_initial}
                 maxLength={2}
                 onChange={(e) => updateField('avatar_initial', e.target.value)}
                 className={inputClass}
               />
+            </div>
+            <div className="flex items-end">
+              <p className="text-xs text-slate-500">
+                头像随账号自动展示：修改个人主页头像即可同步到「关于 Ling」。
+              </p>
             </div>
           </div>
           <div className="space-y-2">
@@ -442,36 +423,26 @@ export default function LingTab() {
               className={`${inputClass} min-h-[80px]`}
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-xs text-slate-400">终端打字机内容（每行一句）</Label>
-            <Textarea
-              value={profile.hero.join('\n')}
-              onChange={(e) =>
-                updateField('hero', e.target.value.split('\n').filter((l) => l.trim().length > 0))
-              }
-              className={`${inputClass} min-h-[80px] font-mono`}
-            />
-          </div>
         </CardContent>
       </Card>
 
-      {/* 技能 */}
+      {/* 技术栈 */}
       <Card className="glass-card border-0">
         <CardContent className="space-y-4 p-5">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-            技能
+            技术栈
           </h3>
           <SkillRows skills={profile.skills} onChange={(skills) => updateField('skills', skills)} />
         </CardContent>
       </Card>
 
-      {/* 项目 */}
+      {/* 技术支持 */}
       <Card className="glass-card border-0">
         <CardContent className="space-y-4 p-5">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-            项目作品
+            技术支持（前端 / 后端 / 数据库）
           </h3>
           <ProjectRows
             projects={profile.projects}
@@ -494,33 +465,12 @@ export default function LingTab() {
         </CardContent>
       </Card>
 
-      {/* 社交与联系方式 */}
+      {/* 联系我 */}
       <Card className="glass-card border-0">
         <CardContent className="space-y-5 p-5">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-            社交链接
-          </h3>
-          <SimpleRows<LingSocial>
-            items={profile.socials}
-            onChange={(socials) => updateField('socials', socials)}
-            fields={[
-              { key: 'label', placeholder: '名称（GitHub）' },
-              { key: 'handle', placeholder: '账号（@xxx）' },
-              { key: 'href', placeholder: '链接' },
-              { key: 'icon', placeholder: '图标（github/email/linkedin/twitter/rss）' },
-            ]}
-            empty={EMPTY_SOCIAL}
-            addLabel="添加社交链接"
-          />
-        </CardContent>
-      </Card>
-
-      <Card className="glass-card border-0">
-        <CardContent className="space-y-5 p-5">
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-            <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-            联系方式
+            联系我
           </h3>
           <SimpleRows<LingContact>
             items={profile.contacts}
