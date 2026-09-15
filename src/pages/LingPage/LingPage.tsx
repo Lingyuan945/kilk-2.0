@@ -1,16 +1,38 @@
 import { useEffect, useState } from 'react';
-import { AlertTriangle, ArrowUpRight, MapPin, Mail, Globe, Phone, MessageCircle } from 'lucide-react';
+import { AlertTriangle, ArrowUpRight, Mail, Globe, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import CodeSphere from '@/components/CodeSphere';
-import ProjectCard from '@/components/ProjectCard';
 import Reveal from '@/components/Reveal';
 import SectionHeading from '@/components/SectionHeading';
 import SkillBar from '@/components/SkillBar';
 import SocialIcon from '@/components/SocialIcon';
 import { apiGet } from '@/lib/api';
 import type { LingProfile } from '@/types';
+
+// 技术支持 → 官网链接映射
+const TECH_LINKS: Record<string, string> = {
+  React: 'https://react.dev/',
+  Vite: 'https://vite.dev/',
+  TypeScript: 'https://www.typescriptlang.org/',
+  'Tailwind CSS': 'https://tailwindcss.com/',
+  'shadcn/ui': 'https://ui.shadcn.com/',
+  'React Router': 'https://reactrouter.com/',
+  ECharts: 'https://echarts.apache.org/',
+  'Node.js': 'https://nodejs.org/',
+  Express: 'https://expressjs.com/',
+  PostgreSQL: 'https://www.postgresql.org/',
+  pg: 'https://node-postgres.com/',
+  bcrypt: 'https://www.npmjs.com/package/bcrypt',
+  JWT: 'https://jwt.io/',
+  Docker: 'https://www.docker.com/',
+  Git: 'https://git-scm.com/',
+  Nginx: 'https://nginx.org/',
+  'REST API': 'https://restfulapi.net/',
+  SQL: 'https://www.postgresql.org/docs/current/sql.html',
+};
 
 export default function LingPage() {
   const [profile, setProfile] = useState<LingProfile | null>(null);
@@ -110,17 +132,60 @@ export default function LingPage() {
         </div>
       </section>
 
-      {/* ===== 项目 ===== */}
+      {/* ===== 技术支持 ===== */}
       <section className="mb-14">
         <SectionHeading
-          eyebrow="Selected Work"
-          title="项目作品"
-          description="一些让我骄傲的作品，覆盖数据可视化、自动化与协作工具。"
+          eyebrow="Tech Stack"
+          title="技术支持"
+          description="前端 · 后端 · 数据库，点击技术直达官网。"
         />
-        <div className="grid gap-6 md:grid-cols-2">
-          {profile.projects.map((project, index) => (
-            <Reveal key={project.id} delay={(index % 2) * 0.08}>
-              <ProjectCard project={project} />
+        <div className="grid gap-6 md:grid-cols-3">
+          {profile.projects.map((group, index) => (
+            <Reveal key={group.id} delay={(index % 3) * 0.08}>
+              <Card className="glow-border glow-border-hover group relative h-full overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                <CardHeader className="pb-2">
+                  <div className="flex items-start justify-between gap-3">
+                    <h3 className="text-lg font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
+                      {group.title}
+                    </h3>
+                    {group.year ? (
+                      <span className="mt-0.5 flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
+                        {group.year}
+                        <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+                      </span>
+                    ) : (
+                      <ArrowUpRight className="mt-0.5 h-3.5 w-3.5 text-muted-foreground transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-primary" />
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent className="flex-1 pb-3">
+                  <p className="text-sm leading-relaxed text-muted-foreground">{group.description}</p>
+                </CardContent>
+                <CardFooter className="flex flex-wrap gap-1.5">
+                  {group.tech.map((t) => {
+                    const href = TECH_LINKS[t];
+                    return href ? (
+                      <a key={t} href={href} target="_blank" rel="noopener noreferrer">
+                        <Badge
+                          variant="outline"
+                          className="cursor-pointer border-border/70 bg-secondary/50 font-mono text-[11px] text-muted-foreground transition-colors hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-400"
+                        >
+                          {t}
+                        </Badge>
+                      </a>
+                    ) : (
+                      <Badge
+                        key={t}
+                        variant="outline"
+                        className="border-border/70 bg-secondary/50 font-mono text-[11px] text-muted-foreground"
+                      >
+                        {t}
+                      </Badge>
+                    );
+                  })}
+                </CardFooter>
+              </Card>
             </Reveal>
           ))}
         </div>
