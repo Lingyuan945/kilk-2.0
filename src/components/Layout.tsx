@@ -47,7 +47,7 @@ export default function Layout() {
 
   return (
     <>
-      <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+      <div className="relative flex min-h-screen flex-col">
         {/* 科技感背景层：粒子 + 发光网格 */}
         <TechBackground />
         <div className="grid-overlay pointer-events-none fixed inset-0 z-0" aria-hidden />

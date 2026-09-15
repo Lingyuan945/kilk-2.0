@@ -533,8 +533,8 @@ export default function AdminPage() {
       </div>{/* 标签页 */}
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* 顶部导航（配置驱动，横向可滚动；桌面端图标+文字，手机端仅图标；卡片式玻璃风格与其他页统一） */}
-          <TabsList className="mb-4 flex w-full flex-nowrap justify-start gap-2 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 p-1.5 backdrop-blur">
+          {/* 顶部导航（配置驱动，横向可滚动；桌面端图标+文字，手机端仅图标；卡片式玻璃风格与其他页统一；滚动常驻） */}
+          <TabsList className="sticky top-16 z-30 mb-4 flex w-full flex-nowrap justify-start gap-2 overflow-x-auto rounded-xl border border-slate-800 bg-slate-950/90 p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.35)] backdrop-blur-md">
             {adminTabs.map((t) => (
               <TabsTrigger
                 key={t.value}

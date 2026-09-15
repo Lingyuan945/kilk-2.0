@@ -298,10 +298,9 @@
     word-break: break-word;
   }
 
-  /* 2. 页面禁止横向滚动：任何内容不得把视口撑宽 */
+  /* 2. 防止视口被撑宽（注意：不能在 html/body 上用 overflow-x:hidden，否则会破坏 position:sticky 导航常驻） */
   html,
   body {
-    overflow-x: hidden;
     max-width: 100%;
   }
 
