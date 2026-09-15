@@ -114,5 +114,18 @@ export default defineConfig(({ command }) => ({
   },
   build: {
     outDir: 'dist/client',
+    // 依赖分包：核心库长缓存，业务代码独立迭代
+    rollupOptions: {
+      output: {
+        manualChunks(id: string) {
+          if (!id.includes('node_modules')) return undefined;
+          if (id.includes('react') || id.includes('scheduler')) return 'react-vendor';
+          if (id.includes('react-router')) return 'router-vendor';
+          if (id.includes('lucide')) return 'icons-vendor';
+          if (id.includes('framer-motion')) return 'motion-vendor';
+          return 'vendor';
+        },
+      },
+    },
   },
 }));
