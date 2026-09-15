@@ -208,10 +208,10 @@ router.get('/posts', async (req, res) => {
   }
 });
 
-// PUT /api/admin/posts/:id - 编辑帖子
+// PUT /api/admin/posts/:id - 编辑帖子（支持同步更新图片列表）
 router.put('/posts/:id', async (req, res) => {
   const { id } = req.params;
-  const { title, content, channel_id } = req.body;
+  const { title, content, channel_id, images } = req.body;
 
   if (!title || !title.trim()) return res.status(400).json({ ok: false, msg: '标题不能为空' });
   if (!content || !content.trim()) return res.status(400).json({ ok: false, msg: '内容不能为空' });
@@ -221,6 +221,21 @@ router.put('/posts/:id', async (req, res) => {
       `UPDATE forum_post SET title = $1, content = $2, channel_id = $3 WHERE id = $4`,
       [title.trim(), content.trim(), channel_id ? Number(channel_id) : null, id]
     );
+
+    // 同步帖子图片：删除旧关联，按新列表重建（仅接受 /upload/ 开头路径）
+    await db.query('DELETE FROM forum_post_image WHERE post_id = $1', [id]);
+    if (Array.isArray(images) && images.length > 0) {
+      const safe = images
+        .filter((p) => typeof p === 'string' && p.startsWith('/upload/') && !p.includes('..'))
+        .slice(0, 9);
+      for (let i = 0; i < safe.length; i++) {
+        await db.query(
+          'INSERT INTO forum_post_image (post_id, image_path, sort) VALUES ($1, $2, $3)',
+          [id, safe[i], i]
+        );
+      }
+    }
+
     res.json({ ok: true, msg: '帖子已更新' });
   } catch (err) {
     console.error('[Admin] 编辑帖子错误:', err);

@@ -1,7 +1,7 @@
-﻿import { useState, useEffect } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText } from 'lucide-react';
+﻿import { useState, useEffect, useRef } from 'react';
+import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet, apiDelete, apiPut, apiPost } from '@/lib/api';
+import { apiGet, apiDelete, apiPut, apiPost, apiUpload } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -112,7 +112,9 @@ export default function AdminPage() {
   // 帖子编辑
   const [postModalOpen, setPostModalOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
-  const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '' });
+  const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '', images: [] as string[] });
+  const [postImageUploading, setPostImageUploading] = useState(false);
+  const postImageInputRef = useRef<HTMLInputElement>(null);
   const [postSaving, setPostSaving] = useState(false);
 
   // 帖子评论管理
@@ -248,14 +250,47 @@ export default function AdminPage() {
   };
 
   // 打开编辑帖子弹窗
-  const openEditPost = (post: any) => {
+  const openEditPost = async (post: any) => {
     setEditingPost(post);
     setPostForm({
       title: post.title || '',
       content: post.content || '',
       channel_id: post.channel_id ? String(post.channel_id) : '',
+      images: [],
     });
     setPostModalOpen(true);
+    // 异步加载帖子现有图片
+    try {
+      const res = await apiGet<{ data: { images?: { image_path: string }[] } }>(`/forum/posts/${post.id}`);
+      const imgs = (res.data.images || []).map((i) => i.image_path);
+      setPostForm((prev) => ({ ...prev, images: imgs }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  // 上传帖子图片（后台编辑）
+  const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setPostImageUploading(true);
+    try {
+      for (const file of files) {
+        if (postForm.images.length >= 9) {
+          alert('最多 9 张图片');
+          break;
+        }
+        const form = new FormData();
+        form.append('image', file);
+        const res = await apiUpload<{ url: string }>('/forum/upload', form);
+        setPostForm((prev) => ({ ...prev, images: [...prev.images, res.url] }));
+      }
+    } catch (err: any) {
+      alert(err.message || '图片上传失败');
+    } finally {
+      setPostImageUploading(false);
+      if (postImageInputRef.current) postImageInputRef.current.value = '';
+    }
   };
 
   // 保存帖子
@@ -955,6 +990,42 @@ export default function AdminPage() {
                 </SelectContent>
               </Select>
             </div>
+          </div>
+          {/* 帖子图片管理 */}
+          <div className="space-y-2">
+            <Label className="text-xs text-slate-400">帖子图片（{postForm.images.length}/9）</Label>
+            <div className="flex flex-wrap gap-2.5">
+              {postForm.images.map((url) => (
+                <div key={url} className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
+                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
+                    className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                    title="移除图片"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => postImageInputRef.current?.click()}
+                disabled={postImageUploading || postForm.images.length >= 9}
+                className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-600 text-slate-500 transition-colors hover:border-blue-500/60 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {postImageUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+                <span className="text-[10px]">{postImageUploading ? '上传中' : '添加图片'}</span>
+              </button>
+            </div>
+            <input
+              ref={postImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/gif,image/webp"
+              multiple
+              className="hidden"
+              onChange={handlePostImageUpload}
+            />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setPostModalOpen(false)} className="border-slate-700 text-slate-200">取消</Button>
