@@ -6,7 +6,7 @@ export default function TimelineSection() {
   return (
     <section className="relative border-t border-border/50 bg-card/30">
       <div className="mx-auto max-w-6xl px-5 py-24 md:px-8">
-        <SectionHeading eyebrow="Journey" title="经历与教育" />
+        <SectionHeading eyebrow="Journey" title="阅历" />
         <div className="relative ml-2 border-l border-border/70 pl-8 md:ml-4 md:pl-10">
           {TIMELINE.map((item, index) => (
             <Reveal key={item.title} delay={index * 0.06}>

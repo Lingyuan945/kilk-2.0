@@ -11,6 +11,8 @@
     "lint:eslint": "eslint src"
   },
   "dependencies": {
+    "@formkit/auto-animate": "^0.9.0",
+    "@gsap/react": "^2.1.2",
     "@hookform/resolvers": "5.4.0",
     "@radix-ui/react-accordion": "^1.2.11",
     "@radix-ui/react-alert-dialog": "^1.1.14",
@@ -38,8 +40,6 @@
     "@radix-ui/react-toggle": "^1.1.9",
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.1.18",
-    "@formkit/auto-animate": "^0.9.0",
-    "@gsap/react": "^2.1.2",
     "@tailwindcss/typography": "^0.5.16",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -82,6 +82,7 @@
     "eslint-plugin-react-hooks": "^7",
     "eslint-plugin-react-refresh": "^0.5",
     "globals": "^17",
+    "puppeteer-core": "^25.11.0",
     "typescript": "~5.9",
     "typescript-eslint": "^8",
     "vite": "^8"

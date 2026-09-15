@@ -456,7 +456,7 @@ export default function LingTab() {
         <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-            经历与教育
+            阅历
           </h3>
           <TimelineRows
             items={profile.timeline}

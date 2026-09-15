@@ -230,7 +230,7 @@ export default function LingPage() {
       {/* ===== 经历时间线 ===== */}
       {profile.timeline.length > 0 && (
         <section className="mb-14">
-          <SectionHeading eyebrow="Journey" title="经历与教育" />
+          <SectionHeading eyebrow="Journey" title="阅历" />
 
           {/* 手机端：横向时间线（横轴 + 卡片横向滑动吸附） */}
           <div className="md:hidden">
