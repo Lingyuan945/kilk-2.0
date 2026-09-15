@@ -231,7 +231,32 @@ export default function LingPage() {
       {profile.timeline.length > 0 && (
         <section className="mb-14">
           <SectionHeading eyebrow="Journey" title="经历与教育" />
-          <div className="relative ml-2 border-l border-slate-700/70 pl-8 md:ml-4 md:pl-10">
+
+          {/* 手机端：横向时间线（横轴 + 卡片横向滑动吸附） */}
+          <div className="md:hidden">
+            <div className="relative">
+              {/* 横轴线 */}
+              <div className="absolute inset-x-2 top-[5px] h-0.5 rounded-full bg-gradient-to-r from-blue-500/40 via-cyan-500/40 to-blue-500/40" />
+              <div className="scrollbar-none -mx-5 flex snap-x snap-mandatory gap-4 overflow-x-auto px-5 pb-3 pt-8">
+                {profile.timeline.map((item) => (
+                  <div key={item.title} className="relative w-[78%] shrink-0 snap-start">
+                    <span className="absolute -top-6 left-4 h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_10px_hsl(217_91%_60%_/_0.9)]">
+                      <span className="absolute inset-0 animate-ping rounded-full bg-blue-500/40" />
+                    </span>
+                    <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-5 backdrop-blur-sm">
+                      <p className="font-mono text-xs uppercase tracking-widest text-blue-400">{item.period}</p>
+                      <h3 className="mt-2 text-base font-semibold tracking-tight text-slate-100">{item.title}</h3>
+                      <p className="mt-1 text-sm font-medium text-cyan-400">{item.org}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 桌面端：纵向时间线 */}
+          <div className="relative ml-2 hidden border-l border-slate-700/70 pl-8 md:ml-4 md:block md:pl-10">
             {profile.timeline.map((item, index) => (
               <Reveal key={item.title} delay={index * 0.06}>
                 <div className="group relative pb-10 last:pb-0">
