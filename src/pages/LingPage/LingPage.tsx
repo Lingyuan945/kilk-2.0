@@ -133,7 +133,49 @@ export default function LingPage() {
           title="技术支持"
           description="前端 · 后端 · 数据库，点击技术直达官网。"
         />
-        <div className="grid gap-6 md:grid-cols-3">
+
+        {/* 手机端：无极滚动（组标题 + 技术徽章横向无缝循环，方向交替） */}
+        <div className="space-y-2.5 md:hidden">
+          {profile.projects.map((group, gi) => (
+            <div
+              key={group.id}
+              className="flex items-center gap-3 rounded-xl border border-slate-800/70 bg-slate-900/60 py-2 pl-3 pr-0 backdrop-blur-sm"
+            >
+              <span className="shrink-0 text-xs font-semibold text-blue-400">{group.title}</span>
+              <div className="marquee min-w-0 flex-1 overflow-hidden">
+                <div className={`marquee-track flex w-max items-center${gi % 2 === 1 ? ' marquee-track-reverse' : ''}`}>
+                  {[...group.tech, ...group.tech].map((t, i) => {
+                    const href = TECH_LINKS[t];
+                    return (
+                      <span key={t + i} className="shrink-0 pr-2.5">
+                        {href ? (
+                          <a href={href} target="_blank" rel="noopener noreferrer">
+                            <Badge
+                              variant="outline"
+                              className="cursor-pointer border-border/70 bg-secondary/50 font-mono text-[11px] text-muted-foreground transition-colors hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-400"
+                            >
+                              {t}
+                            </Badge>
+                          </a>
+                        ) : (
+                          <Badge
+                            variant="outline"
+                            className="border-border/70 bg-secondary/50 font-mono text-[11px] text-muted-foreground"
+                          >
+                            {t}
+                          </Badge>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* 桌面端：三卡片网格 */}
+        <div className="hidden gap-6 md:grid md:grid-cols-3">
           {profile.projects.map((group, index) => (
             <Reveal key={group.id} delay={(index % 3) * 0.08}>
               <Card className="glow-border glow-border-hover group relative h-full overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
