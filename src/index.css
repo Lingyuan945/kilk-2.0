@@ -253,3 +253,27 @@
     animation: shimmer 2.6s linear infinite;
   }
 }
+
+/* ===== 移动端紧凑模式：更简洁、字体更小、容纳更多信息 ===== */
+@media (max-width: 767px) {
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    background-image: none;
+    background-color: hsl(228 48% 5%);
+  }
+
+  /* 卡片内边距微收，提升信息密度 */
+  .card,
+  .glass-card {
+    --radius: 0.9rem;
+  }
+
+  /* 页脚与主容器间距收紧 */
+  .container-page {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
