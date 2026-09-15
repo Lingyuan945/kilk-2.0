@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, MoreHorizontal, X } from 'lucide-react';
+import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiDelete, apiPut, apiPost } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,13 +82,10 @@ const ADMIN_TABS = [
   { value: 'users', label: '用户', fullLabel: '用户管理', icon: Users },
 ] as const;
 
-// 手机端底部导航最多直接展示的数量，超出部分折叠进"更多"面板
-const MOBILE_MAX = 5;
 
 export default function AdminPage() {
   const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
-  const [moreOpen, setMoreOpen] = useState(false);
 
   // 用户管理
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -443,9 +440,6 @@ export default function AdminPage() {
 
   // 根据角色过滤可见的功能模块（superOnly 仅超管可见）
   const adminTabs = ADMIN_TABS.filter((t) => !('superOnly' in t) || !t.superOnly || user?.role === 'super');
-  // 手机端底部导航：前 MOBILE_MAX 个直接展示，超出部分折叠进"更多"面板
-  const visibleMobileTabs = adminTabs.slice(0, MOBILE_MAX);
-  const moreTabs = adminTabs.slice(MOBILE_MAX);
 
   // 非管理员访问
   if (!isAdmin) {
@@ -463,7 +457,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8 pb-28 md:px-8 md:py-12 md:pb-12">
+    <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-12">
       {/* 标题 */}
       <div className="animate-fade-in-up mb-6">
         <div className="flex items-center gap-2">
@@ -503,79 +497,17 @@ export default function AdminPage() {
         </Card>
       </div>{/* 标签页 */}
       <div>
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setMoreOpen(false); }}>
-          {/* 桌面端顶部导航（配置驱动，横向可滚动，新功能自动扩展） */}
-          <TabsList className="mb-4 hidden w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60 md:flex">
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          {/* 顶部导航（配置驱动，横向可滚动；桌面端图标+文字，手机端仅图标） */}
+          <TabsList className="mb-4 flex w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60">
             {adminTabs.map((t) => (
               <TabsTrigger key={t.value} value={t.value} className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-                <t.icon className="h-4 w-4" /> {t.fullLabel}
+                <t.icon className="h-4 w-4" /> <span className="hidden md:inline">{t.fullLabel}</span>
               </TabsTrigger>
             ))}
           </TabsList>
 
-          {/* 手机端底部悬浮胶囊导航（毛玻璃 + 渐变激活态 + 微交互，配置驱动） */}
-          <TabsList className="fixed inset-x-3 bottom-3 z-50 flex h-[68px] items-center justify-around rounded-2xl border border-slate-700/60 bg-slate-950/70 px-1.5 shadow-[0_-4px_24px_rgba(0,0,0,0.45),0_8px_32px_rgba(2,132,199,0.10),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl md:hidden">
-            {visibleMobileTabs.map((t) => (
-              <TabsTrigger
-                key={t.value}
-                value={t.value}
-                className="group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-[10px] font-medium text-slate-500 transition-all duration-300 hover:text-slate-300 data-[state=active]:text-blue-300"
-              >
-                <span className="relative flex h-9 w-14 items-center justify-center rounded-full transition-all duration-300 group-data-[state=active]:-translate-y-0.5 group-data-[state=active]:bg-gradient-to-b group-data-[state=active]:from-blue-500/95 group-data-[state=active]:to-cyan-500/85 group-data-[state=active]:shadow-[0_4px_16px_rgba(56,189,248,0.4),inset_0_1px_0_rgba(255,255,255,0.25)]">
-                  <t.icon className="h-5 w-5 transition-all duration-300 group-data-[state=active]:scale-110 group-data-[state=active]:text-white group-data-[state=active]:drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]" />
-                  {activeTab === t.value && (
-                    <span className="absolute -bottom-[3px] h-1 w-1 rounded-full bg-cyan-300 shadow-[0_0_6px_rgba(103,232,249,0.9)]" />
-                  )}
-                </span>
-                {t.label}
-              </TabsTrigger>
-            ))}
-            {moreTabs.length > 0 && (
-              <button
-                onClick={() => setMoreOpen((v) => !v)}
-                className={`group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-[10px] font-medium transition-colors ${moreOpen ? 'text-blue-300' : 'text-slate-500'}`}
-              >
-                <span className="flex h-9 w-14 items-center justify-center rounded-full transition-all duration-300">
-                  {moreOpen ? <X className="h-5 w-5" /> : <MoreHorizontal className="h-5 w-5" />}
-                </span>
-                更多
-              </button>
-            )}
-          </TabsList>
-
-          {/* 更多功能面板（超出底部导航容量的功能在此展开） */}
-          {moreOpen && moreTabs.length > 0 && (
-            <div className="fixed inset-x-0 bottom-[60px] z-50 md:hidden" onClick={() => setMoreOpen(false)}>
-              <div
-                className="mx-auto max-w-md rounded-t-2xl border border-b-0 border-slate-800 bg-slate-950/95 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="mb-3 flex items-center justify-between">
-                  <p className="text-sm font-medium text-slate-300">全部功能</p>
-                  <button onClick={() => setMoreOpen(false)} className="text-slate-500 hover:text-slate-300">
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-                <div className="grid grid-cols-3 gap-3">
-                  {moreTabs.map((t) => (
-                    <button
-                      key={t.value}
-                      onClick={() => { setActiveTab(t.value); setMoreOpen(false); }}
-                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs transition-colors ${activeTab === t.value
-                        ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
-                        : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-blue-500/30 hover:text-slate-200'
-                      }`}
-                    >
-                      <t.icon className="h-5 w-5" />
-                      {t.fullLabel}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 用户管理 */}
+{/* 用户管理 */}
           <TabsContent value="users">
             {usersLoading ? (
               <div className="space-y-3">
