@@ -1,8 +1,42 @@
 import { Router } from 'express';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 import db from '../db.js';
 import { authRequired, authOptional } from '../middleware/auth.js';
 
 const router = Router();
+
+// 帖子图片上传目录（public/upload，与头像共用，Apache Alias /upload/ 直接对外服务）
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const IMAGE_UPLOAD_DIR = path.resolve(__dirname, '../../public/upload');
+if (!fs.existsSync(IMAGE_UPLOAD_DIR)) fs.mkdirSync(IMAGE_UPLOAD_DIR, { recursive: true });
+
+const imageStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, IMAGE_UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const extMap = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+    const ext = extMap[file.mimetype] || 'jpg';
+    cb(null, `${Date.now()}_${Math.random().toString(36).slice(2, 10)}.${ext}`);
+  },
+});
+const imageUpload = multer({
+  storage: imageStorage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.mimetype)) cb(null, true);
+    else cb(new Error('仅支持 jpg/png/gif/webp 格式'));
+  },
+});
+
+// POST /api/forum/upload - 上传帖子图片（需登录）
+router.post('/upload', authRequired, imageUpload.single('image'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, msg: '未收到图片文件' });
+  }
+  res.json({ ok: true, url: `/upload/${req.file.filename}` });
+});
 
 // GET /api/forum/channels - 频道列表
 router.get('/channels', async (req, res) => {
@@ -137,7 +171,7 @@ router.get('/posts/:id', authOptional, async (req, res) => {
 
 // POST /api/forum/posts - 发帖（需登录）
 router.post('/posts', authRequired, async (req, res) => {
-  const { title, content, channel_id } = req.body;
+  const { title, content, channel_id, images } = req.body;
 
   if (!title || !title.trim()) {
     return res.status(400).json({ ok: false, msg: '请输入帖子标题' });
@@ -156,11 +190,26 @@ router.post('/posts', authRequired, async (req, res) => {
        RETURNING id`,
       [req.user.id, title.trim(), content.trim(), channel_id]
     );
+    const postId = inserted[0].id;
+
+    // 关联帖子图片（仅接受 /upload/ 开头的路径，防止写入任意 URL）
+    if (Array.isArray(images) && images.length > 0) {
+      const safeImages = images
+        .filter((p) => typeof p === 'string' && p.startsWith('/upload/') && !p.includes('..'))
+        .slice(0, 9);
+      for (let i = 0; i < safeImages.length; i++) {
+        await db.query(
+          `INSERT INTO forum_post_image (post_id, image_path, sort)
+           VALUES ($1, $2, $3)`,
+          [postId, safeImages[i], i]
+        );
+      }
+    }
 
     res.json({
       ok: true,
       msg: '发帖成功',
-      post_id: inserted[0].id,
+      post_id: postId,
     });
   } catch (err) {
     console.error('[Forum] 发帖错误:', err);

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost } from '@/lib/api';
+import { apiGet, apiPost, apiUpload } from '@/lib/api';
 import type {
   User,
   Channel,
@@ -123,14 +123,14 @@ export function useCreatePost() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createPost = useCallback(async (title: string, content: string, channelId: string) => {
-    setLoading(true);
+  const createPost = useCallback(async (title: string, content: string, channelId: string, images: string[] = []) => {    setLoading(true);
     setError(null);
     try {
       const res = await apiPost<{ post_id: number }>('/forum/posts', {
         title,
         content,
         channel_id: channelId,
+        images,
       });
       return res.post_id;
     } catch (err: any) {
@@ -141,7 +141,15 @@ export function useCreatePost() {
     }
   }, []);
 
-  return { createPost, loading, error };
+  // 上传帖子图片，返回可用的 /upload/ 路径
+  const uploadPostImage = useCallback(async (file: File): Promise<string> => {
+    const form = new FormData();
+    form.append('image', file);
+    const res = await apiUpload<{ url: string }>('/forum/upload', form);
+    return res.url;
+  }, []);
+
+  return { createPost, uploadPostImage, loading, error };
 }
 
 // ========== 评论 ==========

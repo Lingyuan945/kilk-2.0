@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, MessageCircle, User, Plus, X } from 'lucide-react';
+import { Eye, MessageCircle, User, Plus, X, ImagePlus, Loader2 } from 'lucide-react';
 import { useForumPosts, useChannels, useCreatePost, formatTime, ROLE_COLORS } from '@/hooks/useSiteData';
 import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
@@ -28,7 +28,7 @@ export default function ForumPage() {
   const { data: channels } = useChannels();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { createPost, loading: postLoading } = useCreatePost();
+  const { createPost, uploadPostImage, loading: postLoading } = useCreatePost();
 
   // 发帖弹窗
   const [showPostModal, setShowPostModal] = useState(false);
@@ -36,6 +36,10 @@ export default function ForumPage() {
   const [postContent, setPostContent] = useState('');
   const [postChannel, setPostChannel] = useState<string>('');
   const [postError, setPostError] = useState<string | null>(null);
+  // 帖子图片：{ url: 已上传路径, name: 原始文件名 }
+  const [postImages, setPostImages] = useState<{ url: string; name: string }[]>([]);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 登录弹窗
   const [authModalOpen, setAuthModalOpen] = useState(false);
@@ -61,15 +65,45 @@ export default function ForumPage() {
     }
 
     try {
-      const postId = await createPost(postTitle, postContent, postChannel);
+      const postId = await createPost(
+        postTitle,
+        postContent,
+        postChannel,
+        postImages.map((i) => i.url)
+      );
       setShowPostModal(false);
       setPostTitle('');
       setPostContent('');
       setPostChannel('');
+      setPostImages([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
       reload();
       navigate(`/post/${postId}`);
     } catch (err: any) {
       setPostError(err.message);
+    }
+  };
+
+  // 选择图片后逐个上传
+  const handleSelectImages = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setUploading(true);
+    setPostError(null);
+    try {
+      for (const file of files) {
+        if (postImages.length >= 9) {
+          setPostError('最多上传 9 张图片');
+          break;
+        }
+        const url = await uploadPostImage(file);
+        setPostImages((prev) => [...prev, { url, name: file.name }]);
+      }
+    } catch (err: any) {
+      setPostError(err.message || '图片上传失败');
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -269,6 +303,43 @@ export default function ForumPage() {
                   value={postContent}
                   onChange={(e) => setPostContent(e.target.value)}
                   rows={6}
+                />
+              </div>
+
+              {/* 帖子图片上传 */}
+              <div className="space-y-2">
+                <Label className="text-slate-300">图片（选填，最多 9 张）</Label>
+                <div className="flex flex-wrap gap-2.5">
+                  {postImages.map((img, idx) => (
+                    <div key={img.url} className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
+                      <img src={img.url} alt={img.name} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPostImages((prev) => prev.filter((_, i) => i !== idx))}
+                        className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                        title="移除图片"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading || postImages.length >= 9}
+                    className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-600 text-slate-500 transition-colors hover:border-blue-500/60 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {uploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
+                    <span className="text-[10px]">{uploading ? '上传中' : '添加图片'}</span>
+                  </button>
+                </div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  multiple
+                  className="hidden"
+                  onChange={handleSelectImages}
                 />
               </div>
 
