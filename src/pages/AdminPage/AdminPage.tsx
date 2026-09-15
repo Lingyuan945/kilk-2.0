@@ -533,11 +533,15 @@ export default function AdminPage() {
       </div>{/* 标签页 */}
       <div>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* 顶部导航（配置驱动，横向可滚动；桌面端图标+文字，手机端仅图标） */}
-          <TabsList className="mb-4 flex w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60">
+          {/* 顶部导航（配置驱动，横向可滚动；桌面端图标+文字，手机端仅图标；卡片式玻璃风格与其他页统一） */}
+          <TabsList className="mb-4 flex w-full flex-nowrap justify-start gap-2 overflow-x-auto rounded-xl border border-slate-800 bg-slate-900/40 p-1.5 backdrop-blur">
             {adminTabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-                <t.icon className="h-4 w-4" /> <span className="hidden md:inline">{t.fullLabel}</span>
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="shrink-0 gap-2 rounded-lg border border-transparent px-3 py-2 text-slate-400 transition-all duration-200 data-[state=active]:border-blue-500/40 data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-300 data-[state=active]:shadow-[0_0_14px_rgba(59,130,246,0.15)]"
+              >
+                <t.icon className="h-4 w-4 transition-colors" /> <span className="hidden md:inline">{t.fullLabel}</span>
               </TabsTrigger>
             ))}
           </TabsList>

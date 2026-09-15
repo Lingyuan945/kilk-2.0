@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Download, Pencil, Plus, Trash2, FileText, Calendar, Upload, Layers, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -233,80 +234,90 @@ export default function ServiceTab() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-slate-400">管理服务支持文件（上传文件至服务器，用户可在服务支持页面下载）</p>
-        <Button onClick={openAdd} className="gap-2 bg-blue-600 hover:bg-blue-500">
+      {/* 区块标题（与其他后台页统一） */}
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
+            <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
+            服务支持
+          </h3>
+          <p className="mt-1 text-xs text-slate-500">上传文件至服务器，用户可在服务支持页面下载</p>
+        </div>
+        <Button onClick={openAdd} size="sm" className="shrink-0 gap-1.5 bg-blue-600 hover:bg-blue-500">
           <Plus className="h-4 w-4" /> 新增服务
         </Button>
       </div>
 
       {services.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
-          <FileText className="mx-auto mb-3 h-12 w-12 text-slate-600" />
-          <p className="text-slate-400">暂无服务文件</p>
-          <p className="mt-1 text-xs text-slate-600">点击右上角"新增服务"上传第一个服务文件</p>
-        </div>
+        <Card className="glass-card border-0">
+          <CardContent className="py-12 text-center">
+            <FileText className="mx-auto mb-3 h-10 w-10 text-slate-700" />
+            <p className="text-sm text-slate-500">暂无服务文件</p>
+            <p className="mt-1 text-xs text-slate-600">点击右上角"新增服务"上传第一个服务文件</p>
+          </CardContent>
+        </Card>
       ) : (
         <div className="space-y-3">
-          {services.map((service) => (
-            <Card
-              key={service.id}
-              className="glow-border-hover border-slate-700/60 bg-slate-900/60 transition-colors hover:border-blue-500/40"
-            >
-              <CardContent className="flex items-center gap-4 p-5">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
-                  <FileText className="h-6 w-6" />
-                </div>
-
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <h3 className="truncate font-semibold text-slate-100">{service.title}</h3>
-                    <span className="shrink-0 rounded-full bg-blue-500/10 px-2 py-0.5 text-xs text-blue-400">
-                      {service.versions?.length || 0} 个版本
-                    </span>
+          {services.map((service, idx) => (
+            <div key={service.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
+              <Card className="glass-card border-0">
+                <CardContent className="flex items-center gap-3 p-3.5">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/10 text-blue-400">
+                    <FileText className="h-4 w-4" />
                   </div>
-                  <p className="mt-1 truncate text-sm text-slate-400">{service.description || '暂无描述'}</p>
-                  <div className="mt-2 flex items-center gap-4 text-xs text-slate-500">
-                    <span className="flex items-center gap-1">
-                      <Download className="h-3 w-3" /> {service.total_downloads} 次下载
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {formatDate(service.create_time)}
-                    </span>
-                    {service.file_size > 0 && (
-                      <span>{formatSize(service.file_size)}</span>
-                    )}
-                  </div>
-                </div>
 
-                <div className="flex shrink-0 items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openVersions(service)}
-                    className="gap-1 text-slate-300 hover:text-cyan-300"
-                  >
-                    <Layers className="h-4 w-4" /> 版本管理
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => openEdit(service)}
-                    className="text-slate-400 hover:text-blue-400"
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => handleDelete(service.id)}
-                    className="text-slate-400 hover:text-red-400"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="truncate text-sm font-medium text-slate-100">{service.title}</h3>
+                      <Badge className="bg-blue-500/10 text-blue-400 text-[10px]">
+                        {service.versions?.length || 0} 个版本
+                      </Badge>
+                    </div>
+                    <p className="mt-0.5 truncate text-xs text-slate-500">{service.description || '暂无描述'}</p>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                      <span className="flex items-center gap-1">
+                        <Download className="h-3 w-3" /> {service.total_downloads} 次下载
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" /> {formatDate(service.create_time)}
+                      </span>
+                      {service.file_size > 0 && (
+                        <span>{formatSize(service.file_size)}</span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openVersions(service)}
+                      className="gap-1 text-slate-300 hover:bg-blue-500/10 hover:text-blue-400"
+                    >
+                      <Layers className="h-4 w-4" /> 版本管理
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEdit(service)}
+                      className="text-blue-400 hover:bg-blue-500/10 hover:text-blue-400"
+                      title="编辑服务"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(service.id)}
+                      className="text-red-400 hover:bg-red-500/10 hover:text-red-400"
+                      title="删除服务"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       )}
