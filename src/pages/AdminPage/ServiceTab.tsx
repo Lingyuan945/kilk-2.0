@@ -1,12 +1,22 @@
-import { useEffect, useState } from 'react';
-import { Download, Pencil, Plus, Trash2, FileText, Calendar } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { Download, Pencil, Plus, Trash2, FileText, Calendar, Upload, Layers, X, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { apiGet, apiPost, apiPut, apiDelete } from '@/lib/api';
+import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api';
+
+interface ServiceVersion {
+  id: number;
+  file_path: string;
+  file_name: string;
+  file_size: number;
+  download_count: number;
+  version_note: string;
+  create_time: string;
+}
 
 interface ServiceFile {
   id: number;
@@ -18,7 +28,7 @@ interface ServiceFile {
   create_time: string;
   username?: string;
   author_name?: string;
-  versions: any[];
+  versions: ServiceVersion[];
   total_downloads: number;
 }
 
@@ -38,6 +48,18 @@ const emptyForm: ServiceForm = {
   file_size: '',
 };
 
+const formatSize = (bytes: number) => {
+  if (!bytes) return '-';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
+  return new Date(dateStr).toLocaleDateString('zh-CN');
+};
+
 export default function ServiceTab() {
   const [services, setServices] = useState<ServiceFile[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +67,16 @@ export default function ServiceTab() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [form, setForm] = useState<ServiceForm>(emptyForm);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // 版本管理
+  const [versionDialog, setVersionDialog] = useState<ServiceFile | null>(null);
+  const [versions, setVersions] = useState<ServiceVersion[]>([]);
+  const [versionNote, setVersionNote] = useState('');
+  const [versionFile, setVersionFile] = useState<File | null>(null);
+  const [uploadingVersion, setUploadingVersion] = useState(false);
+  const versionFileRef = useRef<HTMLInputElement>(null);
 
   const loadServices = async () => {
     setLoading(true);
@@ -67,6 +99,7 @@ export default function ServiceTab() {
   const openAdd = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setUploadFile(null);
     setDialogOpen(true);
   };
 
@@ -79,6 +112,7 @@ export default function ServiceTab() {
       file_name: service.file_name,
       file_size: String(service.file_size || ''),
     });
+    setUploadFile(null);
     setDialogOpen(true);
   };
 
@@ -90,12 +124,26 @@ export default function ServiceTab() {
 
     setSubmitting(true);
     try {
+      let filePath = form.file_path;
+      let fileName = form.file_name;
+      let fileSize = Number(form.file_size) || 0;
+
+      // 如果有新选择的文件，先上传到服务器
+      if (uploadFile) {
+        const fd = new FormData();
+        fd.append('file', uploadFile);
+        const up = await apiUpload('/admin/services/upload', fd);
+        filePath = up.data.url;
+        fileName = uploadFile.name;
+        fileSize = uploadFile.size;
+      }
+
       const payload = {
         title: form.title.trim(),
         description: form.description,
-        file_path: form.file_path,
-        file_name: form.file_name,
-        file_size: Number(form.file_size) || 0,
+        file_path: filePath,
+        file_name: fileName,
+        file_size: fileSize,
       };
 
       if (editingId) {
@@ -106,16 +154,16 @@ export default function ServiceTab() {
 
       setDialogOpen(false);
       loadServices();
-    } catch (err) {
+    } catch (err: any) {
       console.error('保存服务文件失败:', err);
-      alert('保存失败，请重试');
+      alert('保存失败：' + (err.message || '请重试'));
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('确定要删除这个服务文件吗？相关版本记录也会被删除。')) return;
+    if (!confirm('确定要删除这个服务文件吗？相关版本记录和文件也会被删除。')) return;
 
     try {
       await apiDelete(`/admin/services/${id}`);
@@ -126,16 +174,51 @@ export default function ServiceTab() {
     }
   };
 
-  const formatSize = (bytes: number) => {
-    if (!bytes) return '-';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  // ===== 版本管理 =====
+  const openVersions = (service: ServiceFile) => {
+    setVersionDialog(service);
+    setVersions(service.versions || []);
+    setVersionFile(null);
+    setVersionNote('');
   };
 
-  const formatDate = (dateStr: string) => {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString('zh-CN');
+  const handleUploadVersion = async () => {
+    if (!versionFile) {
+      alert('请先选择要上传的文件');
+      return;
+    }
+    setUploadingVersion(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', versionFile);
+      if (versionNote) fd.append('version_note', versionNote);
+      await apiUpload(`/admin/services/${versionDialog!.id}/versions`, fd);
+      setVersionFile(null);
+      setVersionNote('');
+      if (versionFileRef.current) versionFileRef.current.value = '';
+      await loadServices();
+      const updated = services.find((s) => s.id === versionDialog!.id);
+      if (updated) setVersions(updated.versions || []);
+      alert('新版本上传成功');
+    } catch (err: any) {
+      console.error('上传版本失败:', err);
+      alert('上传失败：' + (err.message || '请重试'));
+    } finally {
+      setUploadingVersion(false);
+    }
+  };
+
+  const handleDeleteVersion = async (versionId: number) => {
+    if (!confirm('确定要删除这个版本吗？文件也会从服务器移除。')) return;
+    try {
+      await apiDelete(`/admin/services/versions/${versionId}`);
+      await loadServices();
+      const updated = services.find((s) => s.id === versionDialog!.id);
+      if (updated) setVersions(updated.versions || []);
+    } catch (err: any) {
+      console.error('删除版本失败:', err);
+      alert('删除失败：' + (err.message || '请重试'));
+    }
   };
 
   if (loading) {
@@ -151,7 +234,7 @@ export default function ServiceTab() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-slate-400">管理服务支持文件，用户可在服务支持页面下载</p>
+        <p className="text-sm text-slate-400">管理服务支持文件（上传文件至服务器，用户可在服务支持页面下载）</p>
         <Button onClick={openAdd} className="gap-2 bg-blue-600 hover:bg-blue-500">
           <Plus className="h-4 w-4" /> 新增服务
         </Button>
@@ -161,7 +244,7 @@ export default function ServiceTab() {
         <div className="rounded-xl border border-dashed border-slate-700 bg-slate-900/40 p-12 text-center">
           <FileText className="mx-auto mb-3 h-12 w-12 text-slate-600" />
           <p className="text-slate-400">暂无服务文件</p>
-          <p className="mt-1 text-xs text-slate-600">点击右上角"新增服务"添加第一个服务文件</p>
+          <p className="mt-1 text-xs text-slate-600">点击右上角"新增服务"上传第一个服务文件</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -197,6 +280,14 @@ export default function ServiceTab() {
                 </div>
 
                 <div className="flex shrink-0 items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => openVersions(service)}
+                    className="gap-1 text-slate-300 hover:text-cyan-300"
+                  >
+                    <Layers className="h-4 w-4" /> 版本管理
+                  </Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -251,38 +342,48 @@ export default function ServiceTab() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="service-path">文件路径</Label>
-              <Input
-                id="service-path"
-                value={form.file_path}
-                onChange={(e) => setForm({ ...form, file_path: e.target.value })}
-                placeholder="例如：/upload/service/xxx.zip"
-                className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
+              <Label>文件上传</Label>
+              <div
+                className="flex cursor-pointer items-center gap-3 rounded-lg border border-dashed border-slate-600 bg-slate-800/30 px-4 py-4 transition-colors hover:border-blue-500/50"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Upload className="h-5 w-5 shrink-0 text-blue-400" />
+                <div className="min-w-0 flex-1">
+                  {uploadFile ? (
+                    <div className="flex items-center gap-2 text-sm text-cyan-300">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span className="truncate">{uploadFile.name}</span>
+                      <span className="shrink-0 text-xs text-slate-500">{formatSize(uploadFile.size)}</span>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-sm text-slate-300">
+                        {editingId && form.file_name ? '如需更换文件，请点击选择' : '点击选择要上传的文件'}
+                      </p>
+                      <p className="text-xs text-slate-500">支持任意格式，最大 500MB</p>
+                    </div>
+                  )}
+                </div>
+                {uploadFile && (
+                  <X
+                    className="h-4 w-4 shrink-0 text-slate-500 hover:text-red-400"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setUploadFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = '';
+                    }}
+                  />
+                )}
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={(e) => setUploadFile(e.target.files?.[0] || null)}
               />
-              <p className="text-xs text-slate-500">填写服务器上的文件相对路径，用户点击下载时使用</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="service-name">文件名</Label>
-                <Input
-                  id="service-name"
-                  value={form.file_name}
-                  onChange={(e) => setForm({ ...form, file_name: e.target.value })}
-                  placeholder="例如：PrinterKeeper.zip"
-                  className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="service-size">文件大小 (字节)</Label>
-                <Input
-                  id="service-size"
-                  value={form.file_size}
-                  onChange={(e) => setForm({ ...form, file_size: e.target.value })}
-                  placeholder="例如：82528"
-                  className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-                />
-              </div>
+              {!uploadFile && editingId && form.file_name && (
+                <p className="text-xs text-slate-500">当前文件：{form.file_name}（{formatSize(Number(form.file_size) || 0)}）</p>
+              )}
             </div>
           </div>
 
@@ -292,6 +393,111 @@ export default function ServiceTab() {
             </Button>
             <Button onClick={handleSubmit} disabled={submitting} className="bg-blue-600 hover:bg-blue-500">
               {submitting ? '保存中...' : editingId ? '保存修改' : '添加'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 版本管理弹窗 */}
+      <Dialog open={!!versionDialog} onOpenChange={(open) => !open && setVersionDialog(null)}>
+        <DialogContent className="max-w-2xl border-slate-700 bg-slate-900 text-slate-100">
+          <DialogHeader>
+            <DialogTitle>版本管理 · {versionDialog?.title}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2">
+            {/* 上传新版本 */}
+            <div className="rounded-lg border border-slate-700/60 bg-slate-800/30 p-4">
+              <p className="mb-3 text-sm font-medium text-slate-200">
+                <Upload className="mr-1 inline h-4 w-4 text-blue-400" /> 上传新版本
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div
+                  className="flex flex-1 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-slate-600 px-3 py-2.5 transition-colors hover:border-blue-500/50"
+                  onClick={() => versionFileRef.current?.click()}
+                >
+                  {versionFile ? (
+                    <div className="flex min-w-0 items-center gap-2 text-sm text-cyan-300">
+                      <CheckCircle2 className="h-4 w-4 shrink-0" />
+                      <span className="truncate">{versionFile.name}</span>
+                      <span className="shrink-0 text-xs text-slate-500">{formatSize(versionFile.size)}</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-slate-400">点击选择文件</span>
+                  )}
+                  <input
+                    ref={versionFileRef}
+                    type="file"
+                    className="hidden"
+                    onChange={(e) => setVersionFile(e.target.files?.[0] || null)}
+                  />
+                </div>
+                <Input
+                  value={versionNote}
+                  onChange={(e) => setVersionNote(e.target.value)}
+                  placeholder="版本说明（可选）"
+                  className="sm:w-48 border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
+                />
+                <Button
+                  onClick={handleUploadVersion}
+                  disabled={uploadingVersion}
+                  className="shrink-0 gap-1 bg-blue-600 hover:bg-blue-500"
+                >
+                  <Upload className="h-4 w-4" /> {uploadingVersion ? '上传中...' : '上传'}
+                </Button>
+              </div>
+            </div>
+
+            {/* 版本列表 */}
+            {versions.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-slate-700 bg-slate-900/40 p-8 text-center">
+                <p className="text-sm text-slate-500">暂无版本，上传第一个版本吧</p>
+              </div>
+            ) : (
+              <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
+                {versions.map((v, idx) => (
+                  <div
+                    key={v.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-slate-800/60 bg-slate-800/40 px-4 py-3"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="shrink-0 rounded bg-blue-500/15 px-1.5 py-0.5 text-[10px] font-medium text-blue-400">
+                          v{versions.length - idx}
+                        </span>
+                        <p className="truncate text-sm font-medium text-slate-200">{v.file_name}</p>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                        <span>{formatSize(v.file_size)}</span>
+                        <span>{v.download_count} 次下载</span>
+                        <span>{formatDate(v.create_time)}</span>
+                        {v.version_note && <span className="text-cyan-400/80">「{v.version_note}」</span>}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <a href={v.file_path} download={v.file_name}>
+                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-blue-400">
+                          <Download className="h-4 w-4" />
+                        </Button>
+                      </a>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteVersion(v.id)}
+                        className="text-slate-400 hover:text-red-400"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setVersionDialog(null)} className="border-slate-600 text-slate-300">
+              关闭
             </Button>
           </DialogFooter>
         </DialogContent>

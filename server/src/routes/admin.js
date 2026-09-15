@@ -2,11 +2,32 @@ import { Router } from 'express';
 import db from '../db.js';
 import { authRequired, adminRequired } from '../middleware/auth.js';
 import bcrypt from 'bcryptjs';
+import multer from 'multer';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const router = Router();
 
 // 所有管理接口都需要登录和管理员权限
 router.use(authRequired, adminRequired);
+
+// ========== 服务文件上传 ==========
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SERVICE_UPLOAD_DIR = path.resolve(__dirname, '../../public/upload/service');
+if (!fs.existsSync(SERVICE_UPLOAD_DIR)) fs.mkdirSync(SERVICE_UPLOAD_DIR, { recursive: true });
+
+const serviceStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, SERVICE_UPLOAD_DIR),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname || '').slice(0, 12) || '';
+    cb(null, `service_${Date.now()}_${Math.random().toString(36).slice(2, 8)}${ext}`);
+  },
+});
+const serviceUpload = multer({
+  storage: serviceStorage,
+  limits: { fileSize: 500 * 1024 * 1024 }, // 500MB
+});
 
 // ========== 用户管理 ==========
 
@@ -510,15 +531,96 @@ router.put('/services/:id', async (req, res) => {
   }
 });
 
+// POST /api/admin/services/upload - 上传服务文件到服务器
+router.post('/services/upload', serviceUpload.single('file'), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ ok: false, msg: '未接收到文件' });
+  }
+  const url = `/upload/service/${req.file.filename}`;
+  res.json({
+    ok: true,
+    msg: '文件上传成功',
+    data: {
+      url,
+      file_name: req.file.originalname,
+      file_size: req.file.size,
+    },
+  });
+});
+
+// POST /api/admin/services/:id/versions - 为服务上传新版本文件
+router.post('/services/:id/versions', serviceUpload.single('file'), async (req, res) => {
+  const { id } = req.params;
+  const { version_note } = req.body;
+
+  // 校验服务存在
+  const exists = await db.query('SELECT id FROM service_file WHERE id = $1', [id]);
+  if (exists.rowCount === 0) {
+    return res.status(404).json({ ok: false, msg: '服务文件不存在' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ ok: false, msg: '请选择要上传的文件' });
+  }
+
+  try {
+    const url = `/upload/service/${req.file.filename}`;
+    await db.query(
+      `INSERT INTO service_file_item (service_id, file_path, file_name, file_size, download_count, version_note, create_time)
+       VALUES ($1, $2, $3, $4, 0, $5, NOW())`,
+      [id, url, req.file.originalname, req.file.size, version_note || '']
+    );
+    res.json({ ok: true, msg: '新版本已上传' });
+  } catch (err) {
+    console.error('[Admin] 上传版本错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// DELETE /api/admin/services/versions/:versionId - 删除服务版本
+router.delete('/services/versions/:versionId', async (req, res) => {
+  const { versionId } = req.params;
+
+  try {
+    const { rows } = await db.query('SELECT * FROM service_file_item WHERE id = $1', [versionId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ ok: false, msg: '版本记录不存在' });
+    }
+
+    await db.query('DELETE FROM service_file_item WHERE id = $1', [versionId]);
+
+    // 删除物理文件（仅删除 /upload/service/ 下的文件）
+    const filePath = rows[0].file_path || '';
+    if (filePath.startsWith('/upload/service/')) {
+      const absPath = path.join(SERVICE_UPLOAD_DIR, path.basename(filePath));
+      fs.unlink(absPath, () => {});
+    }
+
+    res.json({ ok: true, msg: '版本已删除' });
+  } catch (err) {
+    console.error('[Admin] 删除版本错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
 // DELETE /api/admin/services/:id - 删除服务文件
 router.delete('/services/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    // 先删除版本记录
+    // 先获取版本记录，删除物理文件
+    const { rows: versions } = await db.query('SELECT file_path FROM service_file_item WHERE service_id = $1', [id]);
+    versions.forEach((v) => {
+      if ((v.file_path || '').startsWith('/upload/service/')) {
+        const absPath = path.join(SERVICE_UPLOAD_DIR, path.basename(v.file_path));
+        fs.unlink(absPath, () => {});
+      }
+    });
+
+    // 再删除版本记录
     await db.query('DELETE FROM service_file_item WHERE service_id = $1', [id]);
 
-    // 再删除主记录
+    // 最后删除主记录
     const result = await db.query('DELETE FROM service_file WHERE id = $1', [id]);
 
     if (result.rowCount === 0) {
