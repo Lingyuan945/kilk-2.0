@@ -276,4 +276,44 @@
     padding-left: 1rem;
     padding-right: 1rem;
   }
+
+  /* ===== 手机端全局换行保护 ===== */
+  /* 1. 所有文本元素允许在长内容处断行（日期、URL、文件名、长英文），避免挤压断行/横向溢出 */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  span,
+  a,
+  li,
+  dd,
+  dt,
+  td,
+  th,
+  blockquote {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* 2. 页面禁止横向滚动：任何内容不得把视口撑宽 */
+  html,
+  body {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* 3. flex/grid 直接子项（非按钮、非链接、非显式 shrink-0）允许收缩，文本可换行而不是被兄弟元素挤出屏幕 */
+  .flex > :not(button):not(a):not(.shrink-0):not(.min-w-0):not(.flex-1),
+  .grid > :not(button):not(a):not(.shrink-0):not(.min-w-0):not(.flex-1) {
+    min-width: 0;
+  }
+
+  /* 4. 长文件名 / 长 URL 专用：允许任意处断行 */
+  .break-anywhere {
+    overflow-wrap: anywhere;
+    word-break: break-all;
+  }
 }
