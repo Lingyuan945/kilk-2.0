@@ -137,6 +137,8 @@ export default function PostDetailPage() {
                     <img
                       src={img.image_path}
                       alt="帖子图片"
+                      loading="lazy"
+                      decoding="async"
                       className="w-full cursor-pointer object-cover transition-transform duration-300 hover:scale-[1.02]"
                       onClick={(e) => window.open((e.target as HTMLImageElement).src, '_blank')}
                       onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = 'none'; }}
