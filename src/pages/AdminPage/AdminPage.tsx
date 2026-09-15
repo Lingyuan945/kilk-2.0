@@ -466,39 +466,42 @@ export default function AdminPage() {
     <div className="mx-auto max-w-6xl px-5 py-8 pb-28 md:px-8 md:py-12 md:pb-12">
       {/* 标题 */}
       <div className="animate-fade-in-up mb-6">
-        <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">管理后台</span>
-        </h1>
-        <p className="mt-1 text-sm text-slate-400">用户、帖子、评论管理</p>
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-blue-400 shadow-[0_0_10px_rgba(96,165,250,0.9)]" />
+          <h1 className="text-2xl font-bold tracking-tight">
+            <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">管理后台</span>
+          </h1>
+        </div>
+        <p className="mt-1.5 pl-4 text-sm text-slate-400">用户、帖子、评论管理</p>
       </div>
 
       {/* 统计卡片 */}
-      <div className="animate-fade-in-up stagger-delay-1 mb-6 grid grid-cols-2 gap-4 md:grid-cols-3">
-        <Card className="glass-card border-0">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
+      <div className="animate-fade-in-up stagger-delay-1 mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+        <Card className="glass-card relative overflow-hidden border-0">
+          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-blue-500/15 blur-2xl" />
+          <CardContent className="relative flex items-center gap-3 p-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-500/25 to-cyan-500/10 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.15)]">
               <Users className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-100">{users.length}</p>
+              <p className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-2xl font-bold text-transparent">{users.length}</p>
               <p className="text-xs text-slate-500">用户</p>
             </div>
           </CardContent>
         </Card>
-        <Card className="glass-card border-0">
-          <CardContent className="flex items-center gap-3 p-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-purple-500/30 bg-purple-500/10 text-purple-400">
+        <Card className="glass-card relative overflow-hidden border-0">
+          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-purple-500/15 blur-2xl" />
+          <CardContent className="relative flex items-center gap-3 p-4">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/10 text-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.15)]">
               <MessageSquare className="h-5 w-5" />
             </div>
             <div>
-              <p className="text-xl font-bold text-slate-100">{posts.length}</p>
+              <p className="bg-gradient-to-r from-purple-300 to-fuchsia-300 bg-clip-text text-2xl font-bold text-transparent">{posts.length}</p>
               <p className="text-xs text-slate-500">帖子</p>
             </div>
           </CardContent>
         </Card>
-      </div>
-
-      {/* 标签页 */}
+      </div>{/* 标签页 */}
       <div>
         <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setMoreOpen(false); }}>
           {/* 桌面端顶部导航（配置驱动，横向可滚动，新功能自动扩展） */}
@@ -510,19 +513,31 @@ export default function AdminPage() {
             ))}
           </TabsList>
 
-          {/* 手机端底部固定导航（配置驱动：前 MOBILE_MAX 个直接展示，超出折叠进"更多"） */}
-          <TabsList className="fixed inset-x-0 bottom-0 z-50 flex h-[60px] w-full flex-nowrap items-stretch justify-around border-t border-slate-800/80 bg-slate-950/90 px-2 backdrop-blur-xl md:hidden">
+          {/* 手机端底部悬浮胶囊导航（毛玻璃 + 渐变激活态 + 微交互，配置驱动） */}
+          <TabsList className="fixed inset-x-3 bottom-3 z-50 flex h-[68px] items-center justify-around rounded-2xl border border-slate-700/60 bg-slate-950/70 px-1.5 shadow-[0_-4px_24px_rgba(0,0,0,0.45),0_8px_32px_rgba(2,132,199,0.10),inset_0_1px_0_rgba(255,255,255,0.06)] backdrop-blur-2xl md:hidden">
             {visibleMobileTabs.map((t) => (
-              <TabsTrigger key={t.value} value={t.value} className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-                <t.icon className="h-5 w-5" /> {t.label}
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                className="group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-[10px] font-medium text-slate-500 transition-all duration-300 hover:text-slate-300 data-[state=active]:text-blue-300"
+              >
+                <span className="relative flex h-9 w-14 items-center justify-center rounded-full transition-all duration-300 group-data-[state=active]:-translate-y-0.5 group-data-[state=active]:bg-gradient-to-b group-data-[state=active]:from-blue-500/95 group-data-[state=active]:to-cyan-500/85 group-data-[state=active]:shadow-[0_4px_16px_rgba(56,189,248,0.4),inset_0_1px_0_rgba(255,255,255,0.25)]">
+                  <t.icon className="h-5 w-5 transition-all duration-300 group-data-[state=active]:scale-110 group-data-[state=active]:text-white group-data-[state=active]:drop-shadow-[0_1px_4px_rgba(0,0,0,0.3)]" />
+                  {activeTab === t.value && (
+                    <span className="absolute -bottom-[3px] h-1 w-1 rounded-full bg-cyan-300 shadow-[0_0_6px_rgba(103,232,249,0.9)]" />
+                  )}
+                </span>
+                {t.label}
               </TabsTrigger>
             ))}
             {moreTabs.length > 0 && (
               <button
                 onClick={() => setMoreOpen((v) => !v)}
-                className={`flex flex-col items-center justify-center gap-0.5 text-[11px] transition-colors ${moreOpen ? 'text-blue-400' : 'text-slate-500'}`}
+                className={`group flex flex-1 flex-col items-center justify-center gap-0.5 rounded-xl py-1 text-[10px] font-medium transition-colors ${moreOpen ? 'text-blue-300' : 'text-slate-500'}`}
               >
-                {moreOpen ? <X className="h-5 w-5" /> : <MoreHorizontal className="h-5 w-5" />}
+                <span className="flex h-9 w-14 items-center justify-center rounded-full transition-all duration-300">
+                  {moreOpen ? <X className="h-5 w-5" /> : <MoreHorizontal className="h-5 w-5" />}
+                </span>
                 更多
               </button>
             )}
