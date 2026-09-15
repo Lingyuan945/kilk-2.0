@@ -46,18 +46,20 @@ export default function Layout() {
   }, [location.pathname]);
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-x-hidden">
-      {/* 科技感背景层：粒子 + 发光网格 */}
-      <TechBackground />
-      <div className="grid-overlay pointer-events-none fixed inset-0 z-0" aria-hidden />
+    <>
+      <div className="relative flex min-h-screen flex-col overflow-x-hidden">
+        {/* 科技感背景层：粒子 + 发光网格 */}
+        <TechBackground />
+        <div className="grid-overlay pointer-events-none fixed inset-0 z-0" aria-hidden />
 
-      <SiteHeader />
-      <main className="relative z-10 flex-1 pb-16 md:pb-24" ref={mainRef}>
-        <div ref={contentRef} className="animate-page-enter min-h-[60vh]">
-          <Outlet />
-        </div>
-      </main>
+        <SiteHeader />
+        <main className="relative z-10 flex-1 pb-16 md:pb-24" ref={mainRef}>
+          <div ref={contentRef} className="animate-page-enter min-h-[60vh]">
+            <Outlet />
+          </div>
+        </main>
+      </div>
       <SiteFooter />
-    </div>
+    </>
   );
 }
