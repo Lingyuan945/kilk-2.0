@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText } from 'lucide-react';
+﻿import { useState, useEffect } from 'react';
+import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, MoreHorizontal, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiDelete, apiPut, apiPost } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
@@ -71,9 +71,24 @@ interface AdminReply {
   reply_time: string;
 }
 
+// ===== 后台功能模块配置 =====
+// 新增后台功能时，只需在此数组追加一项（图标 + 名称），桌面端顶部导航、
+// 手机端底部导航会自动扩展；超过 MOBILE_MAX 个时，多余的自动折叠进"更多"面板。
+const ADMIN_TABS = [
+  { value: 'home', label: '首页', fullLabel: '首页管理', icon: Home },
+  { value: 'forum', label: '论坛', fullLabel: '论坛管理', icon: MessageSquare },
+  { value: 'services', label: '服务', fullLabel: '服务支持', icon: FileText },
+  { value: 'ling', label: '关于Ling', fullLabel: '关于Ling', icon: IdCard, superOnly: true },
+  { value: 'users', label: '用户', fullLabel: '用户管理', icon: Users },
+] as const;
+
+// 手机端底部导航最多直接展示的数量，超出部分折叠进"更多"面板
+const MOBILE_MAX = 5;
+
 export default function AdminPage() {
   const { user, isAdmin } = useAuth();
   const [activeTab, setActiveTab] = useState('home');
+  const [moreOpen, setMoreOpen] = useState(false);
 
   // 用户管理
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -426,6 +441,12 @@ export default function AdminPage() {
     }
   };
 
+  // 根据角色过滤可见的功能模块（superOnly 仅超管可见）
+  const adminTabs = ADMIN_TABS.filter((t) => !('superOnly' in t) || !t.superOnly || user?.role === 'super');
+  // 手机端底部导航：前 MOBILE_MAX 个直接展示，超出部分折叠进"更多"面板
+  const visibleMobileTabs = adminTabs.slice(0, MOBILE_MAX);
+  const moreTabs = adminTabs.slice(MOBILE_MAX);
+
   // 非管理员访问
   if (!isAdmin) {
     return (
@@ -479,48 +500,65 @@ export default function AdminPage() {
 
       {/* 标签页 */}
       <div>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          {/* 桌面端顶部导航 */}
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setMoreOpen(false); }}>
+          {/* 桌面端顶部导航（配置驱动，横向可滚动，新功能自动扩展） */}
           <TabsList className="mb-4 hidden w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60 md:flex">
-            <TabsTrigger value="home" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-              <Home className="h-4 w-4" /> 首页管理
-            </TabsTrigger>
-            <TabsTrigger value="forum" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-              <MessageSquare className="h-4 w-4" /> 论坛管理
-            </TabsTrigger>
-            <TabsTrigger value="services" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-              <FileText className="h-4 w-4" /> 服务支持
-            </TabsTrigger>
-            {user?.role === 'super' && (
-              <TabsTrigger value="ling" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-                <IdCard className="h-4 w-4" /> 关于Ling
+            {adminTabs.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+                <t.icon className="h-4 w-4" /> {t.fullLabel}
               </TabsTrigger>
-            )}
-            <TabsTrigger value="users" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
-              <Users className="h-4 w-4" /> 用户管理
-            </TabsTrigger>
+            ))}
           </TabsList>
 
-          {/* 手机端底部固定导航 */}
+          {/* 手机端底部固定导航（配置驱动：前 MOBILE_MAX 个直接展示，超出折叠进"更多"） */}
           <TabsList className="fixed inset-x-0 bottom-0 z-50 flex h-[60px] w-full flex-nowrap items-stretch justify-around border-t border-slate-800/80 bg-slate-950/90 px-2 backdrop-blur-xl md:hidden">
-            <TabsTrigger value="home" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-              <Home className="h-5 w-5" /> 首页
-            </TabsTrigger>
-            <TabsTrigger value="forum" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-              <MessageSquare className="h-5 w-5" /> 论坛
-            </TabsTrigger>
-            <TabsTrigger value="services" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-              <FileText className="h-5 w-5" /> 服务
-            </TabsTrigger>
-            {user?.role === 'super' && (
-              <TabsTrigger value="ling" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-                <IdCard className="h-5 w-5" /> 关于Ling
+            {visibleMobileTabs.map((t) => (
+              <TabsTrigger key={t.value} value={t.value} className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+                <t.icon className="h-5 w-5" /> {t.label}
               </TabsTrigger>
+            ))}
+            {moreTabs.length > 0 && (
+              <button
+                onClick={() => setMoreOpen((v) => !v)}
+                className={`flex flex-col items-center justify-center gap-0.5 text-[11px] transition-colors ${moreOpen ? 'text-blue-400' : 'text-slate-500'}`}
+              >
+                {moreOpen ? <X className="h-5 w-5" /> : <MoreHorizontal className="h-5 w-5" />}
+                更多
+              </button>
             )}
-            <TabsTrigger value="users" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
-              <Users className="h-5 w-5" /> 用户
-            </TabsTrigger>
           </TabsList>
+
+          {/* 更多功能面板（超出底部导航容量的功能在此展开） */}
+          {moreOpen && moreTabs.length > 0 && (
+            <div className="fixed inset-x-0 bottom-[60px] z-50 md:hidden" onClick={() => setMoreOpen(false)}>
+              <div
+                className="mx-auto max-w-md rounded-t-2xl border border-b-0 border-slate-800 bg-slate-950/95 p-4 pb-6 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] backdrop-blur-xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="mb-3 flex items-center justify-between">
+                  <p className="text-sm font-medium text-slate-300">全部功能</p>
+                  <button onClick={() => setMoreOpen(false)} className="text-slate-500 hover:text-slate-300">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {moreTabs.map((t) => (
+                    <button
+                      key={t.value}
+                      onClick={() => { setActiveTab(t.value); setMoreOpen(false); }}
+                      className={`flex flex-col items-center gap-1.5 rounded-xl border p-3 text-xs transition-colors ${activeTab === t.value
+                        ? 'border-blue-500/40 bg-blue-500/10 text-blue-400'
+                        : 'border-slate-800 bg-slate-900/50 text-slate-400 hover:border-blue-500/30 hover:text-slate-200'
+                      }`}
+                    >
+                      <t.icon className="h-5 w-5" />
+                      {t.fullLabel}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* 用户管理 */}
           <TabsContent value="users">
