@@ -292,9 +292,11 @@ export default function ServiceTab() {
                       variant="ghost"
                       size="sm"
                       onClick={() => openVersions(service)}
-                      className="gap-1 text-slate-300 hover:bg-blue-500/10 hover:text-blue-400"
+                      className="gap-1 px-1.5 text-slate-300 hover:bg-blue-500/10 hover:text-blue-400"
+                      title="版本管理"
                     >
-                      <Layers className="h-4 w-4" /> 版本管理
+                      <Layers className="h-4 w-4" />
+                      <span className="hidden sm:inline">版本管理</span>
                     </Button>
                     <Button
                       variant="ghost"
