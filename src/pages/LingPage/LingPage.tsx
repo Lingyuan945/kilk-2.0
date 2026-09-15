@@ -107,12 +107,6 @@ export default function LingPage() {
             <p className="mt-5 max-w-xl text-sm leading-relaxed text-slate-400 md:text-base">
               {profile.tagline} —— {profile.bio}
             </p>
-            <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-xs text-slate-500">
-              <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 transition-colors hover:text-blue-400">
-                <Mail className="h-3.5 w-3.5 text-blue-400" />
-                {profile.email}
-              </a>
-            </div>
           </div>
 
           {/* 3D 代码球 */}
