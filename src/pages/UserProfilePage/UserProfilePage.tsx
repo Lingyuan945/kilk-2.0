@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { ArrowLeft, MessageCircle, Eye, Clock, User as UserIcon, Calendar, Edit3, Save, Loader2, CheckCircle2, AlertCircle, Pencil, Trash2, ImagePlus, X } from 'lucide-react';
 import { useUserProfile, useUserPosts, useChannels, formatTime, ROLE_NAMES, ROLE_COLORS } from '@/hooks/useSiteData';
 import { useAuth } from '@/contexts/AuthContext';
+import { formatBytes } from '@/lib/format';
 import { apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -50,10 +51,12 @@ export default function UserProfilePage() {
   const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '', images: [] as string[] });
   const [postSaving, setPostSaving] = useState(false);
   const [postImageUploading, setPostImageUploading] = useState(false);
+  const [postImageSizes, setPostImageSizes] = useState<Record<string, number>>({});
   const postImageInputRef = useRef<HTMLInputElement>(null);
 
   // 打开编辑帖子弹窗
   const openEditPost = (post: any) => {
+    setPostImageSizes({});
     setEditPost(post);
     setPostForm({
       title: post.title || '',
@@ -79,6 +82,7 @@ export default function UserProfilePage() {
         form.append('image', file);
         const res = await apiUpload<{ url: string }>('/forum/upload', form);
         setPostForm((prev) => ({ ...prev, images: [...prev.images, res.url] }));
+        setPostImageSizes((prev) => ({ ...prev, [res.url]: file.size }));
       }
     } catch (err: any) {
       alert(err.message || '图片上传失败');
@@ -461,16 +465,21 @@ export default function UserProfilePage() {
               <Label className="text-xs text-slate-400">帖子图片（{postForm.images.length}/9）</Label>
               <div className="flex flex-wrap gap-2.5">
                 {postForm.images.map((url) => (
-                  <div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-700">
-                    <img src={url} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
-                      className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
-                      title="移除图片"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
+                  <div key={url} className="w-16">
+                    <div className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-700">
+                      <img src={url} alt="" className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
+                        className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                        title="移除图片"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                    {postImageSizes[url] ? (
+                      <p className="mt-0.5 truncate text-center text-[9px] text-slate-500">{formatBytes(postImageSizes[url])}</p>
+                    ) : null}
                   </div>
                 ))}
                 <button
@@ -543,7 +552,11 @@ export default function UserProfilePage() {
                     <Button type="button" variant="outline" size="sm" className="border-slate-700 text-slate-200" onClick={() => fileInputRef.current?.click()}>
                       选择图片
                     </Button>
-                    <p className="text-xs text-slate-500">支持 jpg/png/gif/webp，最大 2MB</p>
+                    {avatarFile ? (
+                      <p className="text-xs text-cyan-400">已选择：{avatarFile.name}（{formatBytes(avatarFile.size)}）</p>
+                    ) : (
+                      <p className="text-xs text-slate-500">支持 jpg/png/gif/webp，最大 2MB</p>
+                    )}
                   </div>
                 </div>
               </div>

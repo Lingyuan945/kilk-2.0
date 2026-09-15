@@ -40,6 +40,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ROLE_NAMES, ROLE_COLORS, formatTime } from '@/hooks/useSiteData';
 import { cn } from '@/lib/utils';
+import { formatBytes } from '@/lib/format';
 
 interface AdminUser {
   id: string;
@@ -117,6 +118,7 @@ export default function AdminPage() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '', images: [] as string[] });
   const [postImageUploading, setPostImageUploading] = useState(false);
+  const [postImageSizes, setPostImageSizes] = useState<Record<string, number>>({});
   const postImageInputRef = useRef<HTMLInputElement>(null);
   const [postSaving, setPostSaving] = useState(false);
 
@@ -264,6 +266,7 @@ export default function AdminPage() {
 
   // 打开编辑帖子弹窗
   const openEditPost = async (post: any) => {
+    setPostImageSizes({});
     setEditingPost(post);
     setPostForm({
       title: post.title || '',
@@ -297,6 +300,7 @@ export default function AdminPage() {
         form.append('image', file);
         const res = await apiUpload<{ url: string }>('/forum/upload', form);
         setPostForm((prev) => ({ ...prev, images: [...prev.images, res.url] }));
+        setPostImageSizes((prev) => ({ ...prev, [res.url]: file.size }));
       }
     } catch (err: any) {
       alert(err.message || '图片上传失败');
@@ -1026,16 +1030,21 @@ export default function AdminPage() {
             <Label className="text-xs text-slate-400">帖子图片（{postForm.images.length}/9）</Label>
             <div className="flex flex-wrap gap-2.5">
               {postForm.images.map((url) => (
-                <div key={url} className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
-                  <img src={url} alt="" className="h-full w-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
-                    className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
-                    title="移除图片"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
+                <div key={url} className="w-20">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
+                      className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                      title="移除图片"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  {postImageSizes[url] ? (
+                    <p className="mt-0.5 truncate text-center text-[9px] text-slate-500">{formatBytes(postImageSizes[url])}</p>
+                  ) : null}
                 </div>
               ))}
               <button

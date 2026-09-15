@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { formatBytes } from '@/lib/format';
 
 const inputDark = 'border-slate-700 bg-slate-800/60 text-slate-100 placeholder:text-slate-500 focus-visible:border-blue-500/60 focus-visible:ring-blue-500/30';
 
@@ -37,7 +38,7 @@ export default function ForumPage() {
   const [postChannel, setPostChannel] = useState<string>('');
   const [postError, setPostError] = useState<string | null>(null);
   // 帖子图片：{ url: 已上传路径, name: 原始文件名 }
-  const [postImages, setPostImages] = useState<{ url: string; name: string }[]>([]);
+  const [postImages, setPostImages] = useState<{ url: string; name: string; size?: number }[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -97,7 +98,7 @@ export default function ForumPage() {
           break;
         }
         const url = await uploadPostImage(file);
-        setPostImages((prev) => [...prev, { url, name: file.name }]);
+        setPostImages((prev) => [...prev, { url, name: file.name, size: file.size }]);
       }
     } catch (err: any) {
       setPostError(err.message || '图片上传失败');
@@ -311,16 +312,19 @@ export default function ForumPage() {
                 <Label className="text-slate-300">图片（选填，最多 9 张）</Label>
                 <div className="flex flex-wrap gap-2.5">
                   {postImages.map((img, idx) => (
-                    <div key={img.url} className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
-                      <img src={img.url} alt={img.name} className="h-full w-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setPostImages((prev) => prev.filter((_, i) => i !== idx))}
-                        className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
-                        title="移除图片"
-                      >
-                        <X className="h-3.5 w-3.5" />
-                      </button>
+                    <div key={img.url} className="w-20">
+                      <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
+                        <img src={img.url} alt={img.name} className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => setPostImages((prev) => prev.filter((_, i) => i !== idx))}
+                          className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                          title="移除图片"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                      <p className="mt-0.5 truncate text-center text-[9px] text-slate-500">{formatBytes(img.size)}</p>
                     </div>
                   ))}
                   <button
