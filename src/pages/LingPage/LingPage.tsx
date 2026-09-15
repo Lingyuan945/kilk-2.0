@@ -243,11 +243,11 @@ export default function LingPage() {
                     <span className="absolute -top-6 left-4 h-3 w-3 rounded-full bg-blue-500 shadow-[0_0_10px_hsl(217_91%_60%_/_0.9)]">
                       <span className="absolute inset-0 animate-ping rounded-full bg-blue-500/40" />
                     </span>
-                    <div className="rounded-xl border border-slate-700/60 bg-slate-900/60 p-5 backdrop-blur-sm">
+                    <div className="flex h-full flex-col rounded-xl border border-slate-700/60 bg-slate-900/60 p-5 backdrop-blur-sm">
                       <p className="font-mono text-xs uppercase tracking-widest text-blue-400">{item.period}</p>
                       <h3 className="mt-2 text-base font-semibold tracking-tight text-slate-100">{item.title}</h3>
                       <p className="mt-1 text-sm font-medium text-cyan-400">{item.org}</p>
-                      <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.description}</p>
+                      <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-400">{item.description}</p>
                     </div>
                   </div>
                 ))}
