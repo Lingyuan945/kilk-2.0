@@ -255,20 +255,23 @@ export default function LingPage() {
             </div>
           </div>
 
-          {/* 桌面端：纵向时间线 */}
-          <div className="relative ml-2 hidden border-l border-slate-700/70 pl-8 md:ml-4 md:block md:pl-10">
+          {/* 桌面端：左右交替双列时间线（中间光轴） */}
+          <div className="relative hidden md:block">
+            <div className="absolute left-1/2 top-3 h-[calc(100%-24px)] w-0.5 -translate-x-1/2 bg-gradient-to-b from-blue-500/30 via-cyan-500/30 to-blue-500/30" />
             {profile.timeline.map((item, index) => (
-              <Reveal key={item.title} delay={index * 0.06}>
-                <div className="group relative pb-10 last:pb-0">
-                  <span className="absolute -left-[41px] top-1 flex h-3 w-3 items-center justify-center md:-left-[49px]">
-                    <span className="absolute h-3 w-3 rounded-full bg-blue-500/30 transition-all duration-300 group-hover:scale-150" />
-                    <span className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_hsl(217_91%_60%_/_0.9)]" />
+              <Reveal key={item.title} delay={(index % 2) * 0.1}>
+                <div className={'group relative mb-8 last:mb-0 ' + (index % 2 === 0 ? 'justify-start' : 'justify-end') + ' flex'}>
+                  <span className="absolute left-1/2 top-9 z-10 flex h-3.5 w-3.5 -translate-x-1/2 items-center justify-center">
+                    <span className="absolute h-3.5 w-3.5 rounded-full bg-blue-500/25 transition-transform duration-300 group-hover:scale-150" />
+                    <span className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_12px_hsl(217_91%_60%_/_0.9)]" />
                   </span>
-                  <div className="glow-border-hover rounded-xl border border-slate-700/60 bg-slate-900/60 p-6 backdrop-blur-sm transition-colors hover:border-blue-500/40">
-                    <p className="font-mono text-xs uppercase tracking-widest text-blue-400">{item.period}</p>
-                    <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-100">{item.title}</h3>
-                    <p className="mt-1 text-sm font-medium text-cyan-400">{item.org}</p>
-                    <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.description}</p>
+                  <div className="w-[calc(50%-3rem)]">
+                    <div className="glow-border-hover rounded-xl border border-slate-700/60 bg-slate-900/60 p-6 backdrop-blur-sm transition-colors hover:border-blue-500/40">
+                      <p className="font-mono text-xs uppercase tracking-widest text-blue-400">{item.period}</p>
+                      <h3 className="mt-2 text-lg font-semibold tracking-tight text-slate-100">{item.title}</h3>
+                      <p className="mt-1 text-sm font-medium text-cyan-400">{item.org}</p>
+                      <p className="mt-3 text-sm leading-relaxed text-slate-400">{item.description}</p>
+                    </div>
                   </div>
                 </div>
               </Reveal>
