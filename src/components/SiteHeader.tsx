@@ -269,6 +269,9 @@ export default function SiteHeader() {
                 kilk
               </span>
             </span>
+            <span className="hidden rounded border border-blue-500/30 bg-blue-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-cyan-300 sm:inline-block">
+              2.0
+            </span>
           </NavLink>
           {desktopNav}
           <div className="flex items-center gap-2">

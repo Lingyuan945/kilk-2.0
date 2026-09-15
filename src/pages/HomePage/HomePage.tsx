@@ -13,26 +13,44 @@ export default function HomePage() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-12">
-      {/* Banner：蓝色渐变主视觉 + 终端打字机 */}
+      {/* Banner：主视觉 + 终端窗口（静态展示，无打字机动画） */}
       {homeLoading ? (
         <Skeleton className="h-56 w-full rounded-2xl" />
       ) : home ? (
-        <div className="relative mb-10 animate-fade-in-up overflow-hidden rounded-2xl border border-blue-500/25 bg-gradient-to-br from-blue-600/25 via-indigo-600/20 to-purple-600/25 p-8 shadow-[0_0_60px_hsl(217_91%_60%/0.15)] md:p-12">
-          {/* 光晕 */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-500/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-cyan-400/10 blur-3xl" />
+        <div className="relative mb-10 animate-fade-in-up">
+          <div className="grid items-center gap-8 md:grid-cols-2">
+            {/* 左侧文案 */}
+            <div>
+              <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-300">
+                <TerminalSquare className="h-3.5 w-3.5" />
+                SYSTEM ONLINE · v2.0
+              </p>
+              <h1 className="text-glow mb-4 text-2xl font-bold text-white md:text-4xl">
+                {home.banner_title}
+              </h1>
+              <p className="max-w-xl whitespace-pre-line text-sm leading-relaxed text-slate-300 md:text-base">
+                {home.banner_desc}
+              </p>
+            </div>
 
-          <div className="relative max-w-3xl">
-            <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-300">
-              <TerminalSquare className="h-3.5 w-3.5" />
-              SYSTEM ONLINE · v2.0
-            </p>
-            <h1 className="text-glow mb-4 text-2xl font-bold text-white md:text-4xl">
-              {home.banner_title}
-            </h1>
-            <p className="max-w-xl whitespace-pre-line text-sm leading-relaxed text-slate-300 md:text-base">
-              {home.banner_desc}
-            </p>
+            {/* 右侧终端窗口（静态展示，无打字机动画） */}
+            <div className="animate-fade-in-up stagger-delay-2">
+              <div className="overflow-hidden rounded-xl border border-slate-700/70 bg-slate-950/80 shadow-[0_0_40px_hsl(217_91%_60%/0.2)] backdrop-blur">
+                <div className="flex items-center gap-2 border-b border-slate-800 px-4 py-2.5">
+                  <span className="h-3 w-3 rounded-full bg-red-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-yellow-500/80" />
+                  <span className="h-3 w-3 rounded-full bg-green-500/80" />
+                  <span className="ml-2 font-mono text-xs text-slate-500">kilk@localhost: ~</span>
+                </div>
+                <div className="space-y-1.5 px-4 py-4 font-mono text-xs text-cyan-300">
+                  <p>$ kilk --init 2.0</p>
+                  <p className="text-slate-400">&gt; React 19 · Vite · TypeScript 已装载</p>
+                  <p className="text-slate-400">&gt; Node.js API 服务 · 在线</p>
+                  <p className="text-slate-400">&gt; PostgreSQL · 已连接</p>
+                  <p>&gt; 欢迎来到 kilk 2.0</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
