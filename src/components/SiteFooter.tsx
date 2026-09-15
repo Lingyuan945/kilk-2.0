@@ -21,7 +21,7 @@ export default function SiteFooter() {
 
   return (
     <footer
-      className={`fixed inset-x-0 bottom-0 z-40 border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md transition-transform duration-300 ${
+      className={`fixed inset-x-0 bottom-0 z-40 border-t border-slate-800/80 bg-slate-950/90 backdrop-blur-md transition-transform duration-300 md:static md:inset-auto md:translate-y-0 ${
         visible ? 'translate-y-0' : 'translate-y-full'
       }`}
     >
