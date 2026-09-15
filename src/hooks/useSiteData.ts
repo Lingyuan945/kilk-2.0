@@ -193,16 +193,20 @@ export function useUserProfile(userId: string) {
 export function useUserPosts(userId: string) {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
+    setLoading(true);
     apiGet<{ data: any[] }>(`/users/${userId}/posts`)
       .then((res) => setData(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, reloadKey]);
 
-  return { data, loading };
+  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { data, loading, reload };
 }
 
 // ========== 服务文件列表 ==========

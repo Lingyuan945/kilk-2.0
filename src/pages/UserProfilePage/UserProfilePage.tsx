@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MessageCircle, Eye, Clock, User as UserIcon, Calendar, Edit3, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useUserProfile, useUserPosts, formatTime, ROLE_NAMES, ROLE_COLORS } from '@/hooks/useSiteData';
+import { ArrowLeft, MessageCircle, Eye, Clock, User as UserIcon, Calendar, Edit3, Save, Loader2, CheckCircle2, AlertCircle, Pencil, Trash2, ImagePlus, X } from 'lucide-react';
+import { useUserProfile, useUserPosts, useChannels, formatTime, ROLE_NAMES, ROLE_COLORS } from '@/hooks/useSiteData';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiPut, apiUpload } from '@/lib/api';
+import { apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +21,13 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -31,10 +38,88 @@ export default function UserProfilePage() {
   const { id } = useParams<{ id: string }>();
   const { user: currentUser } = useAuth();
   const { data: user, loading: userLoading, refetch } = useUserProfile(id || '');
-  const { data: posts, loading: postsLoading } = useUserPosts(id || '');
+  const { data: posts, loading: postsLoading, reload: reloadPosts } = useUserPosts(id || '');
+  const { data: channels } = useChannels();
 
   const isSelf = currentUser && user && String(currentUser.id) === String(user.id);
   const isAdmin = user && ['admin', 'super'].includes(user.role);
+
+  // 编辑帖子弹窗状态
+  const [postEditOpen, setPostEditOpen] = useState(false);
+  const [editPost, setEditPost] = useState<any>(null);
+  const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '', images: [] as string[] });
+  const [postSaving, setPostSaving] = useState(false);
+  const [postImageUploading, setPostImageUploading] = useState(false);
+  const postImageInputRef = useRef<HTMLInputElement>(null);
+
+  // 打开编辑帖子弹窗
+  const openEditPost = (post: any) => {
+    setEditPost(post);
+    setPostForm({
+      title: post.title || '',
+      content: post.content || '',
+      channel_id: post.channel_id ? String(post.channel_id) : '',
+      images: (post.images || []).map((i: any) => i.image_path),
+    });
+    setPostEditOpen(true);
+  };
+
+  // 上传帖子图片
+  const handleEditPostUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setPostImageUploading(true);
+    try {
+      for (const file of files) {
+        if (postForm.images.length >= 9) {
+          alert('最多 9 张图片');
+          break;
+        }
+        const form = new FormData();
+        form.append('image', file);
+        const res = await apiUpload<{ url: string }>('/forum/upload', form);
+        setPostForm((prev) => ({ ...prev, images: [...prev.images, res.url] }));
+      }
+    } catch (err: any) {
+      alert(err.message || '图片上传失败');
+    } finally {
+      setPostImageUploading(false);
+      if (postImageInputRef.current) postImageInputRef.current.value = '';
+    }
+  };
+
+  // 保存编辑帖子
+  const saveEditPost = async () => {
+    if (!postForm.title.trim()) {
+      alert('标题不能为空');
+      return;
+    }
+    if (!postForm.content.trim()) {
+      alert('内容不能为空');
+      return;
+    }
+    setPostSaving(true);
+    try {
+      await apiPut(`/forum/posts/${editPost.id}`, postForm);
+      setPostEditOpen(false);
+      reloadPosts();
+    } catch (e: any) {
+      alert(e.message || '保存失败');
+    } finally {
+      setPostSaving(false);
+    }
+  };
+
+  // 删除帖子
+  const deletePost = async (post: any) => {
+    if (!window.confirm(`确定删除帖子「${post.title}」吗？评论和图片也会一并删除。`)) return;
+    try {
+      await apiDelete(`/forum/posts/${post.id}`);
+      reloadPosts();
+    } catch (e: any) {
+      alert(e.message || '删除失败');
+    }
+  };
 
   // 编辑资料弹窗状态
   const [editOpen, setEditOpen] = useState(false);
@@ -278,36 +363,145 @@ export default function UserProfilePage() {
           <div className="space-y-3">
             {posts.map((post: any, idx: number) => (
               <div key={post.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
-                <Link to={`/post/${post.id}`}>
-                  <Card className="glass-card glass-card-hover border-0 hover-lift">
-                    <CardContent className="p-4 md:p-5">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate text-base font-semibold text-slate-100 transition-colors hover:text-blue-400">
-                            {post.title}
-                          </h3>
-                          <p className="mt-1 line-clamp-2 text-sm text-slate-400">{post.content}</p>
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" /> {formatTime(post.create_time)}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Eye className="h-3 w-3" /> {post.view_count || 0}
-                            </span>
-                            {post.channel_name && (
-                              <Badge variant="secondary" className="border-slate-700 bg-slate-800/70 text-[10px] text-slate-400">{post.channel_name}</Badge>
-                            )}
-                          </div>
+                <Card className="glass-card glass-card-hover border-0 hover-lift">
+                  <CardContent className="p-4 md:p-5">
+                    <div className="flex items-start justify-between gap-4">
+                      <Link to={`/post/${post.id}`} className="min-w-0 flex-1">
+                        <h3 className="truncate text-base font-semibold text-slate-100 transition-colors hover:text-blue-400">
+                          {post.title}
+                        </h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-slate-400">{post.content}</p>
+                        <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                          <span className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" /> {formatTime(post.create_time)}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Eye className="h-3 w-3" /> {post.view_count || 0}
+                          </span>
+                          {post.channel_name && (
+                            <Badge variant="secondary" className="border-slate-700 bg-slate-800/70 text-[10px] text-slate-400">{post.channel_name}</Badge>
+                          )}
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                      </Link>
+                      {isSelf && (
+                        <div className="flex shrink-0 items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 transition-colors hover:bg-blue-500/10 hover:text-blue-400"
+                            onClick={() => openEditPost(post)}
+                            title="编辑帖子"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 transition-colors hover:bg-red-500/10 hover:text-red-400"
+                            onClick={() => deletePost(post)}
+                            title="删除帖子"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             ))}
           </div>
         )}
       </div>
+
+      {/* 编辑帖子弹窗 */}
+      <Dialog open={postEditOpen} onOpenChange={setPostEditOpen}>
+        <DialogContent className="border-slate-700 bg-slate-900/95 text-slate-100 backdrop-blur-xl sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold">编辑帖子</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="edit_post_title" className="text-xs text-slate-400">标题 *</Label>
+              <Input
+                id="edit_post_title"
+                value={postForm.title}
+                onChange={(e) => setPostForm({ ...postForm, title: e.target.value })}
+                className="border-slate-700 bg-slate-800/50 text-slate-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit_post_content" className="text-xs text-slate-400">内容 *</Label>
+              <Textarea
+                id="edit_post_content"
+                value={postForm.content}
+                onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
+                className="min-h-[110px] border-slate-700 bg-slate-800/50 text-slate-100"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-slate-400">所属频道</Label>
+              <Select
+                value={postForm.channel_id}
+                onValueChange={(value) => setPostForm({ ...postForm, channel_id: value })}
+                modal={false}
+              >
+                <SelectTrigger className="border-slate-700 bg-slate-800/50 text-slate-100">
+                  <SelectValue placeholder="选择频道" />
+                </SelectTrigger>
+                <SelectContent className="border-slate-700 bg-slate-900 text-slate-100">
+                  <SelectItem value="">未分类</SelectItem>
+                  {channels.map((c) => (
+                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-slate-400">帖子图片（{postForm.images.length}/9）</Label>
+              <div className="flex flex-wrap gap-2.5">
+                {postForm.images.map((url) => (
+                  <div key={url} className="relative h-16 w-16 overflow-hidden rounded-lg border border-slate-700">
+                    <img src={url} alt="" className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
+                      className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
+                      title="移除图片"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => postImageInputRef.current?.click()}
+                  disabled={postImageUploading || postForm.images.length >= 9}
+                  className="flex h-16 w-16 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-600 text-slate-500 transition-colors hover:border-blue-500/60 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {postImageUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+                  <span className="text-[10px]">{postImageUploading ? '上传中' : '添加图片'}</span>
+                </button>
+              </div>
+              <input
+                ref={postImageInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/gif,image/webp"
+                multiple
+                className="hidden"
+                onChange={handleEditPostUpload}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setPostEditOpen(false)} className="border-slate-700 text-slate-200">取消</Button>
+            <Button onClick={saveEditPost} disabled={postSaving} className="bg-blue-600 hover:bg-blue-500">
+              {postSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+              保存修改
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* 编辑资料弹窗 */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>

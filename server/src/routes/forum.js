@@ -217,6 +217,71 @@ router.post('/posts', authRequired, async (req, res) => {
   }
 });
 
+// PUT /api/forum/posts/:id - 编辑帖子（作者本人或管理员）
+router.put('/posts/:id', authRequired, async (req, res) => {
+  const { id } = req.params;
+  const { title, content, channel_id, images } = req.body;
+
+  if (!title || !title.trim()) return res.status(400).json({ ok: false, msg: '请输入帖子标题' });
+  if (!content || !content.trim()) return res.status(400).json({ ok: false, msg: '请输入帖子内容' });
+
+  try {
+    // 权限：仅作者本人或管理员可编辑
+    const { rows: posts } = await db.query('SELECT user_id FROM forum_post WHERE id = $1', [id]);
+    if (posts.length === 0) return res.status(404).json({ ok: false, msg: '帖子不存在' });
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super';
+    if (posts[0].user_id !== req.user.id && !isAdmin) {
+      return res.status(403).json({ ok: false, msg: '无权修改该帖子' });
+    }
+
+    await db.query(
+      `UPDATE forum_post SET title = $1, content = $2, channel_id = $3, update_time = NOW() WHERE id = $4`,
+      [title.trim(), content.trim(), channel_id ? Number(channel_id) : null, id]
+    );
+
+    // 同步帖子图片
+    await db.query('DELETE FROM forum_post_image WHERE post_id = $1', [id]);
+    if (Array.isArray(images) && images.length > 0) {
+      const safe = images
+        .filter((p) => typeof p === 'string' && p.startsWith('/upload/') && !p.includes('..'))
+        .slice(0, 9);
+      for (let i = 0; i < safe.length; i++) {
+        await db.query(
+          'INSERT INTO forum_post_image (post_id, image_path, sort) VALUES ($1, $2, $3)',
+          [id, safe[i], i]
+        );
+      }
+    }
+
+    res.json({ ok: true, msg: '帖子已更新' });
+  } catch (err) {
+    console.error('[Forum] 编辑帖子错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// DELETE /api/forum/posts/:id - 删除帖子（作者本人或管理员）
+router.delete('/posts/:id', authRequired, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const { rows: posts } = await db.query('SELECT user_id FROM forum_post WHERE id = $1', [id]);
+    if (posts.length === 0) return res.status(404).json({ ok: false, msg: '帖子不存在' });
+    const isAdmin = req.user.role === 'admin' || req.user.role === 'super';
+    if (posts[0].user_id !== req.user.id && !isAdmin) {
+      return res.status(403).json({ ok: false, msg: '无权删除该帖子' });
+    }
+
+    await db.query('DELETE FROM forum_reply WHERE post_id = $1', [id]);
+    await db.query('DELETE FROM forum_post_image WHERE post_id = $1', [id]);
+    await db.query('DELETE FROM forum_post WHERE id = $1', [id]);
+    res.json({ ok: true, msg: '删除成功' });
+  } catch (err) {
+    console.error('[Forum] 删除帖子错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
 // POST /api/forum/posts/:id/replies - 评论（需登录）
 router.post('/posts/:id/replies', authRequired, async (req, res) => {
   const { id } = req.params;
