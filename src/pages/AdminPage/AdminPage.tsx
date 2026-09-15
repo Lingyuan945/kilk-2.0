@@ -95,6 +95,9 @@ export default function AdminPage() {
   const [posts, setPosts] = useState<AdminPost[]>([]);
   const [postsLoading, setPostsLoading] = useState(true);
 
+  // 服务文件管理
+  const [services, setServices] = useState<any[]>([]);
+
   // 首页内容管理
   const [homeContent, setHomeContent] = useState<any>(null);
   const [homeLoading, setHomeLoading] = useState(true);
@@ -159,6 +162,16 @@ export default function AdminPage() {
       console.error(e);
     } finally {
       setPostsLoading(false);
+    }
+  };
+
+  // 加载服务文件列表
+  const loadServices = async () => {
+    try {
+      const res = await apiGet<{ ok: boolean; data: any[] }>('/admin/services');
+      if (res.ok) setServices(res.data || []);
+    } catch (e) {
+      console.error('加载服务文件失败:', e);
     }
   };
 
@@ -434,6 +447,7 @@ export default function AdminPage() {
       loadPosts();
       loadHomeContent();
       loadChannels();
+      loadServices();
     }
   }, [isAdmin]);
 
@@ -527,6 +541,18 @@ export default function AdminPage() {
             <div>
               <p className="bg-gradient-to-r from-purple-300 to-fuchsia-300 bg-clip-text text-2xl font-bold text-transparent">{posts.length}</p>
               <p className="text-xs text-slate-500">帖子</p>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="glass-card relative overflow-hidden border-0">
+          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-emerald-500/15 blur-2xl" />
+          <CardContent className="relative flex items-center gap-3 p-3.5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-emerald-400/30 bg-gradient-to-br from-emerald-500/25 to-teal-500/10 text-emerald-400 shadow-[0_0_16px_rgba(16,185,129,0.15)]">
+              <FileText className="h-5 w-5" />
+            </div>
+            <div>
+              <p className="bg-gradient-to-r from-emerald-300 to-teal-300 bg-clip-text text-2xl font-bold text-transparent">{services.length}</p>
+              <p className="text-xs text-slate-500">服务</p>
             </div>
           </CardContent>
         </Card>
