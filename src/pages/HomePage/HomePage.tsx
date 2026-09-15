@@ -40,7 +40,7 @@ export default function HomePage() {
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             发展规划
           </h2>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid grid-cols-3 gap-2 md:grid-cols-3 md:gap-4">
             {[
               { title: home.card1_title, text: home.card1_text },
               { title: home.card2_title, text: home.card2_text },
@@ -48,9 +48,13 @@ export default function HomePage() {
             ].map((card, i) => (
               <div key={i} className={`animate-fade-in-up stagger-delay-${i + 1}`}>
                 <Card className="glass-card glass-card-hover h-full hover-lift">
-                  <CardContent className="p-6">
-                    <h3 className="mb-2 text-base font-semibold text-blue-400">{card.title}</h3>
-                    <p className="text-sm leading-relaxed text-slate-400">{card.text}</p>
+                  <CardContent className="p-2.5 md:p-6">
+                    <h3 className="mb-0.5 truncate text-[13px] font-semibold text-blue-400 md:mb-2 md:text-base">
+                      {card.title}
+                    </h3>
+                    <p className="line-clamp-2 text-[11px] leading-snug text-slate-400 md:line-clamp-none md:text-sm md:leading-relaxed">
+                      {card.text}
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -65,20 +69,22 @@ export default function HomePage() {
           <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
           常用入口
         </h2>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4">
           <div className="animate-fade-in-up stagger-delay-1">
             <Link to="/forum" className="group block h-full">
               <Card className="glass-card glass-card-hover h-full hover-lift">
-                <CardContent className="flex flex-col items-center p-8 text-center">
-                  <div className="icon-hover mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 shadow-[0_0_24px_hsl(217_91%_60%/0.25)]">
-                    <MessageSquare className="h-7 w-7" />
+                <CardContent className="flex items-center gap-2.5 p-3 md:flex-col md:items-center md:p-8 md:text-center">
+                  <div className="icon-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 shadow-[0_0_24px_hsl(217_91%_60%/0.25)] md:h-14 md:w-14">
+                    <MessageSquare className="h-4 w-4 md:h-7 md:w-7" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-slate-100">团队内部交流论坛</h3>
-                  <p className="mb-5 max-w-sm text-sm leading-relaxed text-slate-400">
-                    分享技术经验、交流工作问题、发布团队通知，在这里和大家一起互动讨论
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-blue-400 transition-transform duration-300 group-hover:translate-x-1">
-                    进入论坛 <ArrowRight className="h-4 w-4" />
+                  <div className="min-w-0 flex-1 md:flex-none">
+                    <h3 className="truncate text-[13px] font-semibold text-slate-100 md:mb-2 md:text-lg">团队内部交流论坛</h3>
+                    <p className="hidden text-sm leading-relaxed text-slate-400 md:mb-5 md:block">
+                      分享技术经验、交流工作问题、发布团队通知，在这里和大家一起互动讨论
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-blue-400 md:inline-flex md:items-center md:gap-1 md:text-sm md:font-medium md:transition-transform md:duration-300 md:group-hover:translate-x-1">
+                    进入论坛 <ArrowRight className="hidden h-4 w-4 md:inline" />
                   </span>
                 </CardContent>
               </Card>
@@ -88,16 +94,18 @@ export default function HomePage() {
           <div className="animate-fade-in-up stagger-delay-2">
             <Link to="/service" className="group block h-full">
               <Card className="glass-card glass-card-hover h-full hover-lift">
-                <CardContent className="flex flex-col items-center p-8 text-center">
-                  <div className="icon-hover mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_24px_hsl(262_83%_60%/0.25)]">
-                    <Download className="h-7 w-7" />
+                <CardContent className="flex items-center gap-2.5 p-3 md:flex-col md:items-center md:p-8 md:text-center">
+                  <div className="icon-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-purple-500/30 bg-purple-500/10 text-purple-400 shadow-[0_0_24px_hsl(262_83%_60%/0.25)] md:h-14 md:w-14">
+                    <Download className="h-4 w-4 md:h-7 md:w-7" />
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-slate-100">服务支持中心</h3>
-                  <p className="mb-5 max-w-sm text-sm leading-relaxed text-slate-400">
-                    团队共享资源与作品下载中心，随时下载需要的文档、软件与工具包
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-sm font-medium text-purple-400 transition-transform duration-300 group-hover:translate-x-1">
-                    进入服务 <ArrowRight className="h-4 w-4" />
+                  <div className="min-w-0 flex-1 md:flex-none">
+                    <h3 className="truncate text-[13px] font-semibold text-slate-100 md:mb-2 md:text-lg">服务支持中心</h3>
+                    <p className="hidden text-sm leading-relaxed text-slate-400 md:mb-5 md:block">
+                      团队共享资源与作品下载中心，随时下载需要的文档、软件与工具包
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-purple-400 md:inline-flex md:items-center md:gap-1 md:text-sm md:font-medium md:transition-transform md:duration-300 md:group-hover:translate-x-1">
+                    进入服务 <ArrowRight className="hidden h-4 w-4 md:inline" />
                   </span>
                 </CardContent>
               </Card>
