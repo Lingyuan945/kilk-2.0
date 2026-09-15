@@ -52,7 +52,7 @@ export default function Layout() {
       <div className="grid-overlay pointer-events-none fixed inset-0 z-0" aria-hidden />
 
       <SiteHeader />
-      <main className="relative z-10 flex-1" ref={mainRef}>
+      <main className="relative z-10 flex-1 pb-16 md:pb-24" ref={mainRef}>
         <div ref={contentRef} className="animate-page-enter min-h-[60vh]">
           <Outlet />
         </div>
