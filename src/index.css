@@ -1,0 +1,255 @@
+@import url('https://miaoda.feishu.cn/fonts/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./tailwind-theme.css";
+@import "./typography.css";
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: hsl(228 48% 5%);
+    background-image:
+      radial-gradient(ellipse 90% 60% at 50% -10%, hsl(217 91% 60% / 0.16), transparent 60%),
+      radial-gradient(ellipse 60% 45% at 90% 110%, hsl(199 95% 62% / 0.10), transparent 60%),
+      radial-gradient(ellipse 55% 40% at 0% 100%, hsl(262 83% 60% / 0.08), transparent 60%);
+    background-attachment: fixed;
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background-color: hsl(217 91% 60% / 0.35);
+    color: hsl(214 40% 98%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(228 45% 6%);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(224 32% 20%);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(217 91% 50% / 0.6);
+  }
+}
+
+/* ===== 入场动画关键帧（全局定义，不放在 @layer 中） ===== */
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slide-in-left {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== 入场动画类（全局定义，不放在 @layer 中） ===== */
+.animate-fade-in-up {
+  animation: fade-in-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
+}
+.animate-slide-in-left {
+  animation: slide-in-left 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-scale-in {
+  animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-modal-in {
+  animation: modal-in 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.animate-overlay-in {
+  animation: overlay-in 0.25s ease-out forwards;
+}
+.animate-page-enter {
+  animation: page-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* 交错延迟 */
+.stagger-delay-1 { animation-delay: 0.05s; }
+.stagger-delay-2 { animation-delay: 0.1s; }
+.stagger-delay-3 { animation-delay: 0.15s; }
+.stagger-delay-4 { animation-delay: 0.2s; }
+.stagger-delay-5 { animation-delay: 0.25s; }
+.stagger-delay-6 { animation-delay: 0.3s; }
+.stagger-delay-7 { animation-delay: 0.35s; }
+.stagger-delay-8 { animation-delay: 0.4s; }
+.stagger-delay-9 { animation-delay: 0.45s; }
+.stagger-delay-10 { animation-delay: 0.5s; }
+
+@layer utilities {
+  /* hover 上浮效果 */
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  /* 图标 hover 旋转缩放 */
+  .icon-hover {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .icon-hover:hover {
+    transform: scale(1.15) rotate(5deg);
+  }
+
+  /* 科技网格背景：细蓝网格线，配合 mask 淡出边缘 */
+  .tech-grid {
+    background-image:
+      linear-gradient(hsl(217 91% 60% / 0.11) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(217 91% 60% / 0.11) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 100%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, black 30%, transparent 100%);
+  }
+
+  /* 全屏发光网格背景层（固定，位于内容之下） */
+  .grid-overlay {
+    background-image:
+      linear-gradient(hsl(217 91% 60% / 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(217 91% 60% / 0.08) 1px, transparent 1px);
+    background-size: 46px 46px;
+    mask-image: radial-gradient(ellipse 100% 90% at 50% 0%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 100% 90% at 50% 0%, black 20%, transparent 75%);
+  }
+
+  /* 暗色玻璃卡片 */
+  .glass-card {
+    background: hsl(224 42% 9% / 0.62);
+    border: 1px solid hsl(224 32% 18% / 0.9);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 0 1px hsl(217 91% 60% / 0.04),
+      0 8px 32px hsl(0 0% 0% / 0.35),
+      inset 0 1px 0 hsl(255 100% 100% / 0.04);
+  }
+  .glass-card-hover {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .glass-card-hover:hover {
+    border-color: hsl(217 91% 60% / 0.45);
+    box-shadow:
+      0 0 0 1px hsl(217 91% 60% / 0.1),
+      0 0 32px hsl(217 91% 60% / 0.16),
+      0 10px 36px hsl(0 0% 0% / 0.4),
+      inset 0 1px 0 hsl(255 100% 100% / 0.05);
+  }
+
+  /* 蓝色发光文字 */
+  .text-glow {
+    text-shadow: 0 0 18px hsl(217 91% 60% / 0.55), 0 0 42px hsl(217 91% 60% / 0.25);
+  }
+
+  .text-glow-soft {
+    text-shadow: 0 0 14px hsl(199 95% 62% / 0.45);
+  }
+
+  /* 蓝色发光边框卡片 */
+  .glow-border {
+    border: 1px solid hsl(217 91% 60% / 0.28);
+    box-shadow:
+      0 0 0 1px hsl(217 91% 60% / 0.06),
+      0 0 26px hsl(217 91% 60% / 0.12),
+      inset 0 0 22px hsl(217 91% 60% / 0.05);
+  }
+
+  .glow-border-hover {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  }
+  .glow-border-hover:hover {
+    border-color: hsl(199 95% 62% / 0.55);
+    box-shadow:
+      0 0 0 1px hsl(199 95% 62% / 0.12),
+      0 0 34px hsl(217 91% 60% / 0.22),
+      inset 0 0 26px hsl(199 95% 62% / 0.07);
+  }
+
+  /* 终端窗口顶部三色圆点 */
+  .terminal-dots::before {
+    content: '';
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    background: radial-gradient(circle at 30% 30%, hsl(199 95% 72%), hsl(217 91% 60%));
+    box-shadow: 0 0 10px hsl(217 91% 60% / 0.8);
+  }
+
+  /* 打字机光标 */
+  .type-cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    vertical-align: -0.12em;
+    margin-left: 2px;
+    background: hsl(199 95% 62%);
+    box-shadow: 0 0 8px hsl(199 95% 62% / 0.9);
+    animation: cursor-blink 1s step-end infinite;
+  }
+
+  @keyframes cursor-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* 漂浮光点 */
+  @keyframes float-y {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-14px); }
+  }
+  .animate-float {
+    animation: float-y 6s ease-in-out infinite;
+  }
+
+  /* 顶部进度条扫光 */
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(200%); }
+  }
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(105deg, transparent 40%, hsl(199 95% 62% / 0.25) 50%, transparent 60%);
+    animation: shimmer 2.6s linear infinite;
+  }
+}

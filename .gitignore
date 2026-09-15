@@ -1,0 +1,90 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Production builds
+dist/
+*/dist/
+build/
+*/build/
+
+# Environment files
+.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+/logs/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary folders
+tmp/
+temp/
+.playwright-cli/
+
+# Lock files (keep package-lock.json for consistent installs)
+yarn.lock
+pnpm-lock.yaml
+
+# Cache files
+.eslintcache
+*.tsbuildinfo
+
+# swc wasm
+.swc
+
+# Agent files
+.agent/
+
+# ===== kilk 2.0 专属 =====
+
+# 敏感配置（含数据库密码、JWT密钥）
+.env
+.env.*
+!.env.example
+
+# 嵌入式数据库数据目录（PGlite 已废弃，本地使用原生 PostgreSQL）
+server/pg-local-data/
+server/pg-local-data-backup/
+
+# 临时 token 文件
+server/scripts/*.txt
+
+# 服务器日志
+server/*.log
+server/err.log
+server/server_out.log
+server/server_err.log
+
+# 数据库迁移临时文件
+server/truncate.sql
+
+# 数据导出（含密码哈希等敏感数据，如需备份请使用私有仓库或本地保留）
+server/data-export/
