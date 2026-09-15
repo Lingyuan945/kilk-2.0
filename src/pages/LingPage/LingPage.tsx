@@ -278,35 +278,6 @@ export default function LingPage() {
             );
           })}
         </div>
-
-        {/* 社交链接 */}
-        {profile.socials.length > 0 && (
-          <Reveal delay={0.15}>
-            <div className="mt-6 rounded-xl border border-slate-700/60 bg-gradient-to-r from-slate-900/80 via-slate-900/60 to-slate-900/80 p-6 backdrop-blur-sm">
-              <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
-                <div>
-                  <p className="font-mono text-xs uppercase tracking-widest text-blue-400">Social</p>
-                  <p className="mt-1 text-sm text-slate-400">在社交平台上找到我</p>
-                </div>
-                <div className="flex flex-wrap gap-3">
-                  {profile.socials.map((social) => (
-                    <a
-                      key={social.label}
-                      href={social.href}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={social.label}
-                      className="group flex items-center gap-2 rounded-lg border border-slate-700/70 bg-slate-800/50 px-4 py-2 font-mono text-xs text-slate-400 transition-all duration-300 hover:border-blue-500/50 hover:bg-blue-500/10 hover:text-blue-300 hover:shadow-[0_0_15px_hsl(217_91%_60%/0.2)]"
-                    >
-                      <SocialIcon name={social.icon as 'github' | 'email' | 'linkedin' | 'twitter' | 'rss'} className="h-4 w-4 transition-transform group-hover:scale-110" />
-                      {social.handle}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </Reveal>
-        )}
       </section>
 
       {/* ===== CTA ===== */}
