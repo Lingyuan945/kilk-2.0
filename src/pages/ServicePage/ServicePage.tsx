@@ -75,12 +75,12 @@ export default function ServicePage() {
                           >
                             <div className="min-w-0 flex-1">
                               <p className="truncate text-sm font-medium text-slate-200">{item.file_name}</p>
-                              <div className="mt-0.5 flex items-center gap-3 text-xs text-slate-500">
-                                <span>{formatFileSize(item.file_size)}</span>
-                                <span className="flex items-center gap-1">
+                              <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+                                <span className="shrink-0">{formatFileSize(item.file_size)}</span>
+                                <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
                                   <Clock className="h-3 w-3" /> {formatTime(item.create_time)}
                                 </span>
-                                <Badge variant="secondary" className="border-slate-700 bg-slate-800/70 text-[10px] text-slate-400">
+                                <Badge variant="secondary" className="shrink-0 border-slate-700 bg-slate-800/70 text-[10px] text-slate-400">
                                   {item.download_count} 次下载
                                 </Badge>
                               </div>
