@@ -140,12 +140,12 @@ export default function ForumPage() {
           </CardContent>
         </Card>
       ) : (
-        <div key={activeChannel} className="space-y-3">
+        <div key={activeChannel} className="space-y-2.5">
           {posts.map((post: any, idx: number) => (
             <div key={post.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
               <Link
                 to={`/post/${post.id}`}
-                className="glass-card glass-card-hover block rounded-lg p-4 hover-lift md:p-5"
+                className="glass-card glass-card-hover block rounded-lg p-3 hover-lift md:p-5"
               >
                 <div className="flex items-start gap-4">
                   {/* 作者头像 */}
@@ -170,7 +170,7 @@ export default function ForumPage() {
                       {post.title}
                     </h3>
                     <p className="mt-1 line-clamp-2 text-sm text-slate-400">{post.content}</p>
-                    <div className="mt-2.5 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                       <span className="flex items-center gap-1">
                         <User className="h-3 w-3" />
                         {post.author_name || post.username || '匿名'}

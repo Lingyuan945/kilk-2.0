@@ -90,7 +90,7 @@ export default function PostDetailPage() {
       {/* 帖子主体 */}
       <div className="animate-fade-in-up stagger-delay-1">
         <Card className="glass-card border-0">
-          <CardContent className="p-6 md:p-8">
+          <CardContent className="p-4 md:p-8">
             {/* 标题 */}
             <h1 className="text-xl font-bold text-slate-100 md:text-2xl">{post.title}</h1>
 
@@ -119,16 +119,16 @@ export default function PostDetailPage() {
               {post.channel_name && <Badge variant="secondary" className="border-slate-700 bg-slate-800/70 text-slate-400">{post.channel_name}</Badge>}
             </div>
 
-            <Separator className="my-6 bg-slate-800" />
+            <Separator className="my-4 bg-slate-800 md:my-6" />
 
             {/* 正文 */}
-            <div className="whitespace-pre-line text-[15px] leading-7 text-slate-300">
+            <div className="whitespace-pre-line text-[15px] leading-6 text-slate-300 md:leading-7">
               {post.content}
             </div>
 
             {/* 帖子图片 */}
             {post.images && post.images.length > 0 && (
-              <div className="mt-6 space-y-4">
+              <div className="mt-4 space-y-3 md:mt-6 md:space-y-4">
                 {post.images.map((img: any, idx: number) => (
                   <div
                     key={img.id}
@@ -150,15 +150,15 @@ export default function PostDetailPage() {
       </div>
 
       {/* 评论区 */}
-      <div className="animate-fade-in-up stagger-delay-2 mt-8">
-        <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-slate-100">
+      <div className="animate-fade-in-up stagger-delay-2 mt-6 md:mt-8">
+        <h2 className="mb-3 flex items-center gap-2 text-lg font-bold text-slate-100 md:mb-4">
           <MessageCircle className="h-5 w-5 text-blue-400" />
           评论 ({post.replies?.length || 0})
         </h2>
 
         {/* 评论输入框 */}
-        <Card className="glass-card mb-6 border-0 transition-shadow hover:shadow-lg">
-          <CardContent className="p-4 md:p-5">
+        <Card className="glass-card mb-4 border-0 transition-shadow hover:shadow-lg md:mb-6">
+          <CardContent className="p-3.5 md:p-5">
             {replyError && (
               <div className="mb-3 animate-fade-in rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-400">
                 {replyError}
@@ -195,11 +195,11 @@ export default function PostDetailPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2.5 md:space-y-3">
             {post.replies.map((reply: any, idx: number) => (
               <div key={reply.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
                 <Card className="glass-card glass-card-hover border-0 hover-lift">
-                  <CardContent className="p-4 md:p-5">
+                  <CardContent className="p-3.5 md:p-5">
                     <div className="flex items-start gap-3">
                       <Avatar className="h-8 w-8 shrink-0 border border-blue-500/30">
                         <AvatarImage src={reply.avatar || undefined} alt={reply.username} />

@@ -470,10 +470,10 @@ export default function AdminPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="animate-fade-in-up stagger-delay-1 mb-6 grid grid-cols-2 gap-3 md:grid-cols-3 md:gap-4">
+      <div className="animate-fade-in-up stagger-delay-1 mb-5 grid grid-cols-2 gap-2.5 md:grid-cols-3 md:gap-4">
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-blue-500/15 blur-2xl" />
-          <CardContent className="relative flex items-center gap-3 p-4">
+          <CardContent className="relative flex items-center gap-3 p-3.5">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-blue-400/30 bg-gradient-to-br from-blue-500/25 to-cyan-500/10 text-blue-400 shadow-[0_0_16px_rgba(59,130,246,0.15)]">
               <Users className="h-5 w-5" />
             </div>
@@ -485,7 +485,7 @@ export default function AdminPage() {
         </Card>
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-purple-500/15 blur-2xl" />
-          <CardContent className="relative flex items-center gap-3 p-4">
+          <CardContent className="relative flex items-center gap-3 p-3.5">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/10 text-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.15)]">
               <MessageSquare className="h-5 w-5" />
             </div>
@@ -525,7 +525,7 @@ export default function AdminPage() {
                 {users.map((u, idx) => (
                   <div key={u.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
                     <Card className="glass-card border-0">
-                      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                      <CardContent className="flex flex-col gap-2.5 p-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <div className="flex min-w-0 items-center gap-3">
                           <Avatar className="h-10 w-10 shrink-0 border border-blue-500/30">
                             <AvatarImage src={u.avatar || undefined} alt={u.username} />
@@ -604,7 +604,7 @@ export default function AdminPage() {
                 {posts.map((p, idx) => (
                   <div key={p.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
                     <Card className="glass-card border-0">
-                      <CardContent className="flex items-start justify-between gap-4 p-4">
+                      <CardContent className="flex items-start justify-between gap-3 p-3.5">
                         <div className="min-w-0 flex-1">
                           <h3 className="truncate text-sm font-medium text-slate-100">{p.title}</h3>
                           <p className="mt-1 line-clamp-1 text-xs text-slate-500">{p.content}</p>
@@ -684,7 +684,7 @@ export default function AdminPage() {
                 {channels.map((c, idx) => (
                   <div key={c.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
                     <Card className="glass-card border-0">
-                      <CardContent className="flex items-center justify-between gap-4 p-4">
+                      <CardContent className="flex items-center justify-between gap-3 p-3.5">
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium text-slate-100">{c.name}</span>
@@ -738,7 +738,7 @@ export default function AdminPage() {
 
                 {/* Banner 区域 */}
                 <Card className="glass-card border-0">
-                  <CardContent className="space-y-4 p-5">
+                  <CardContent className="space-y-3.5 p-4">
                     <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
                       <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
                       Banner 区域
@@ -771,7 +771,7 @@ export default function AdminPage() {
                   { key: 'card3', label: '发展规划三' },
                 ].map((card) => (
                   <Card key={card.key} className="glass-card border-0">
-                    <CardContent className="space-y-4 p-5">
+                    <CardContent className="space-y-3.5 p-4">
                       <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
                         <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
                         {card.label}

@@ -362,7 +362,7 @@ export default function LingTab() {
 
       {/* 基本信息 */}
       <Card className="glass-card border-0">
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             基本信息
@@ -428,7 +428,7 @@ export default function LingTab() {
 
       {/* 技术栈 */}
       <Card className="glass-card border-0">
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             技术栈
@@ -439,7 +439,7 @@ export default function LingTab() {
 
       {/* 技术支持 */}
       <Card className="glass-card border-0">
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             技术支持（前端 / 后端 / 数据库）
@@ -453,7 +453,7 @@ export default function LingTab() {
 
       {/* 经历 */}
       <Card className="glass-card border-0">
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             经历与教育
@@ -467,7 +467,7 @@ export default function LingTab() {
 
       {/* 联系我 */}
       <Card className="glass-card border-0">
-        <CardContent className="space-y-5 p-5">
+        <CardContent className="space-y-3.5 p-4">
           <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
             <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
             联系我
