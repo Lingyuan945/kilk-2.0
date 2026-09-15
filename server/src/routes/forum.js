@@ -117,7 +117,7 @@ router.get('/posts/:id', authOptional, async (req, res) => {
        FROM forum_reply r
        LEFT JOIN "user" u ON r.user_id = u.id
        WHERE r.post_id = $1
-       ORDER BY r.reply_time ASC`,
+       ORDER BY r.create_time ASC`,
       [id]
     );
 
@@ -185,7 +185,7 @@ router.post('/posts/:id/replies', authRequired, async (req, res) => {
     }
 
     await db.query(
-      `INSERT INTO forum_reply (post_id, user_id, content, reply_time)
+      `INSERT INTO forum_reply (post_id, user_id, content, create_time)
        VALUES ($1, $2, $3, NOW())`,
       [id, req.user.id, content.trim()]
     );

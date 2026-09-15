@@ -3,9 +3,9 @@ export const config = {
   port: process.env.PORT || 3001,
   db: {
     host: process.env.DB_HOST || '127.0.0.1',
-    user: process.env.DB_USER || 'simple_site',
-    password: process.env.DB_PASSWORD || 'Simple@Site2026',
-    database: process.env.DB_NAME || 'simple_site',
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
+    database: process.env.DB_NAME || 'kilk',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0,

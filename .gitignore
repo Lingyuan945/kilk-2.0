@@ -88,3 +88,13 @@ server/truncate.sql
 
 # 数据导出（含密码哈希等敏感数据，如需备份请使用私有仓库或本地保留）
 server/data-export/
+
+# Environment files (sensitive)
+.env
+.env.*
+!.env.example
+
+# 部署临时产物
+server/*.tar.gz
+server/kilk_db_dump.sql
+server/db_dump.sql

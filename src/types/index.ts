@@ -45,7 +45,7 @@ export interface ForumReply {
   post_id: string;
   user_id: string;
   content: string;
-  reply_time: string;
+  create_time: string;
 }
 
 export interface HomeContent {

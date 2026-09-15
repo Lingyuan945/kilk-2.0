@@ -1,14 +1,15 @@
 // 原生 PostgreSQL 连接（稳定可靠，与 Supabase 兼容）
 import pg from 'pg';
+import { config } from './config.js';
 
 const { Pool } = pg;
 
 const pool = new Pool({
-  host: 'localhost',
+  host: config.db.host,
   port: 5432,
-  user: 'postgres',
-  password: 'Postgres@2026',
-  database: 'kilk',
+  user: config.db.user,
+  password: config.db.password,
+  database: config.db.database,
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,

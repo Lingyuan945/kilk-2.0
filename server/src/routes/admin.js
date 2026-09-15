@@ -99,7 +99,7 @@ router.post('/users', async (req, res) => {
 
     // 自动分配 8 位账号ID
     const { rows: noRows } = await db.query(
-      `SELECT LPAD(COALESCE(MAX(CAST(user_no AS INTEGER)), 10000000) + 1, 8, '0') AS next_no FROM "user"`
+      `SELECT LPAD(CAST(COALESCE(MAX(CAST(user_no AS INTEGER)), 10000000) + 1 AS TEXT), 8, '0') AS next_no FROM "user"`
     );
     const user_no = noRows[0]?.next_no || '00000001';
 
@@ -216,7 +216,7 @@ router.get('/posts/:id/replies', async (req, res) => {
        FROM forum_reply r
        LEFT JOIN "user" u ON r.user_id = u.id
        WHERE r.post_id = $1
-       ORDER BY r.reply_time ASC`,
+       ORDER BY r.create_time ASC`,
       [id]
     );
     res.json({ ok: true, data: rows });
@@ -252,7 +252,7 @@ router.get('/replies', async (req, res) => {
        FROM forum_reply r
        LEFT JOIN "user" u ON r.user_id = u.id
        LEFT JOIN forum_post p ON r.post_id = p.id
-       ORDER BY r.reply_time DESC
+       ORDER BY r.create_time DESC
        LIMIT 100`
     );
     res.json({ ok: true, data: rows });
@@ -303,7 +303,7 @@ router.post('/channels', async (req, res) => {
       `INSERT INTO channel (name, description, moderator_id, sort, create_time)
        VALUES ($1, $2, $3, $4, NOW())
        RETURNING id`,
-      [name.trim(), description || '', moderator_id ? Number(moderator_id) : 0, sort ? Number(sort) : 0]
+      [name.trim(), description || '', moderator_id ? Number(moderator_id) : null, sort ? Number(sort) : 0]
     );
     res.json({ ok: true, data: { id: rows[0].id }, msg: '频道已创建' });
   } catch (err) {
@@ -321,7 +321,7 @@ router.put('/channels/:id', async (req, res) => {
   try {
     await db.query(
       `UPDATE channel SET name = $1, description = $2, moderator_id = $3, sort = $4 WHERE id = $5`,
-      [name.trim(), description || '', moderator_id ? Number(moderator_id) : 0, sort ? Number(sort) : 0, id]
+      [name.trim(), description || '', moderator_id ? Number(moderator_id) : null, sort ? Number(sort) : 0, id]
     );
     res.json({ ok: true, msg: '频道已更新' });
   } catch (err) {
