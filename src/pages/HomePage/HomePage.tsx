@@ -7,7 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function HomePage() {
   const { data: home, loading: homeLoading } = useHomeContent();
-  const { data: posts, loading: postsLoading } = useForumPosts(undefined, 1, 5);
+  const { data: posts, loading: postsLoading } = useForumPosts(undefined, 1, 2);
 
   const latestPosts = posts;
 
