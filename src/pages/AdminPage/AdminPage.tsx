@@ -480,22 +480,22 @@ export default function AdminPage() {
       {/* 标签页 */}
       <div className="animate-fade-in-up stagger-delay-2">
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4 border border-slate-800 bg-slate-900/60">
-            <TabsTrigger value="home" className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+          <TabsList className="mb-4 flex w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60">
+            <TabsTrigger value="home" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <Home className="h-4 w-4" /> 首页管理
             </TabsTrigger>
-            <TabsTrigger value="forum" className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+            <TabsTrigger value="forum" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <MessageSquare className="h-4 w-4" /> 论坛管理
             </TabsTrigger>
-            <TabsTrigger value="services" className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+            <TabsTrigger value="services" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <FileText className="h-4 w-4" /> 服务支持
             </TabsTrigger>
             {user?.role === 'super' && (
-              <TabsTrigger value="ling" className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+              <TabsTrigger value="ling" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
                 <IdCard className="h-4 w-4" /> 关于Ling
               </TabsTrigger>
             )}
-            <TabsTrigger value="users" className="gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
+            <TabsTrigger value="users" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <Users className="h-4 w-4" /> 用户管理
             </TabsTrigger>
           </TabsList>
@@ -518,23 +518,23 @@ export default function AdminPage() {
                 {users.map((u, idx) => (
                   <div key={u.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
                     <Card className="glass-card border-0">
-                      <CardContent className="flex items-center justify-between gap-4 p-4">
+                      <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                         <div className="flex min-w-0 items-center gap-3">
                           <Avatar className="h-10 w-10 shrink-0 border border-blue-500/30">
                             <AvatarImage src={u.avatar || undefined} alt={u.username} />
                             <AvatarFallback className="bg-blue-500/20 text-blue-300">{u.username?.[0]?.toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <div className="min-w-0">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="text-sm font-medium text-slate-100">{u.name || u.username}</span>
                               <Badge className={cn('text-[10px]', ROLE_COLORS[u.role] || 'bg-slate-800 text-slate-300')}>
                                 {ROLE_NAMES[u.role] || u.role}
                               </Badge>
                             </div>
-                            <p className="text-xs text-slate-500">@{u.username} · 注册于 {formatTime(u.create_time)}</p>
+                            <p className="mt-0.5 text-xs text-slate-500">@{u.username} · 注册于 {formatTime(u.create_time)}</p>
                           </div>
                         </div>
-                        <div className="flex shrink-0 items-center gap-2">
+                        <div className="flex shrink-0 items-center gap-2 self-end sm:self-auto">
                           <Button
                             variant="ghost"
                             size="icon"

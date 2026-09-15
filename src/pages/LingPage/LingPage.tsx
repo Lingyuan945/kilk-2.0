@@ -86,10 +86,6 @@ export default function LingPage() {
               {profile.tagline} —— {profile.bio}
             </p>
             <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-xs text-slate-500">
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-blue-400" />
-                {profile.location}
-              </span>
               <a href={`mailto:${profile.email}`} className="flex items-center gap-1.5 transition-colors hover:text-blue-400">
                 <Mail className="h-3.5 w-3.5 text-blue-400" />
                 {profile.email}

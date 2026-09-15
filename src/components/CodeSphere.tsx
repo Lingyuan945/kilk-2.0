@@ -142,7 +142,8 @@ export default function CodeSphere({ words = DEFAULT_WORDS, size = 320, speed = 
 
       {/* 提示文字 */}
       <div className="absolute bottom-3 left-0 right-0 text-center">
-        <p className="font-mono text-[10px] text-slate-600">移动鼠标交互</p>
+        <p className="hidden font-mono text-[10px] text-slate-600 sm:block">移动鼠标交互</p>
+        <p className="font-mono text-[10px] text-slate-600 sm:hidden">触摸拖拽交互</p>
       </div>
 
       <style>{`
