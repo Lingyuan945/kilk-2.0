@@ -34,7 +34,13 @@ export default function Layout() {
           }
         });
       });
-    }, 600); // 等待动画正常完成（动画时长最长 0.5s + 延迟 0.5s）
+      // 动画播放完成后移除动画类，避免 fill 保留的 transform 影响内部 fixed 元素定位
+      // （任何残留的 transform 都会成为 fixed 后代的包含块，导致底部导航/弹窗错位）
+      animatedEls.forEach((el) => el.classList.remove(
+        'animate-fade-in-up', 'animate-fade-in', 'animate-page-enter', 'animate-scale-in',
+        'animate-slide-in-left', 'animate-slide-in-right', 'animate-modal-in', 'animate-overlay-in'
+      ));
+    }, 1200); // 等待动画正常完成（动画时长最长 0.5s + 延迟 0.5s）
 
     return () => clearTimeout(timer);
   }, [location.pathname]);

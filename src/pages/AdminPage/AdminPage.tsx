@@ -73,7 +73,7 @@ interface AdminReply {
 
 export default function AdminPage() {
   const { user, isAdmin } = useAuth();
-  const [activeTab, setActiveTab] = useState('users');
+  const [activeTab, setActiveTab] = useState('home');
 
   // 用户管理
   const [users, setUsers] = useState<AdminUser[]>([]);
@@ -442,7 +442,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-12">
+    <div className="mx-auto max-w-6xl px-5 py-8 pb-28 md:px-8 md:py-12 md:pb-12">
       {/* 标题 */}
       <div className="animate-fade-in-up mb-6">
         <h1 className="text-2xl font-bold">
@@ -452,7 +452,7 @@ export default function AdminPage() {
       </div>
 
       {/* 统计卡片 */}
-      <div className="animate-fade-in-up stagger-delay-1 mb-6 grid grid-cols-3 gap-4">
+      <div className="animate-fade-in-up stagger-delay-1 mb-6 grid grid-cols-2 gap-4 md:grid-cols-3">
         <Card className="glass-card border-0">
           <CardContent className="flex items-center gap-3 p-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-500/10 text-blue-400">
@@ -478,9 +478,10 @@ export default function AdminPage() {
       </div>
 
       {/* 标签页 */}
-      <div className="animate-fade-in-up stagger-delay-2">
+      <div>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4 flex w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60">
+          {/* 桌面端顶部导航 */}
+          <TabsList className="mb-4 hidden w-full flex-nowrap justify-start overflow-x-auto border border-slate-800 bg-slate-900/60 md:flex">
             <TabsTrigger value="home" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <Home className="h-4 w-4" /> 首页管理
             </TabsTrigger>
@@ -497,6 +498,27 @@ export default function AdminPage() {
             )}
             <TabsTrigger value="users" className="shrink-0 gap-2 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">
               <Users className="h-4 w-4" /> 用户管理
+            </TabsTrigger>
+          </TabsList>
+
+          {/* 手机端底部固定导航 */}
+          <TabsList className="fixed inset-x-0 bottom-0 z-50 flex h-[60px] w-full flex-nowrap items-stretch justify-around border-t border-slate-800/80 bg-slate-950/90 px-2 backdrop-blur-xl md:hidden">
+            <TabsTrigger value="home" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+              <Home className="h-5 w-5" /> 首页
+            </TabsTrigger>
+            <TabsTrigger value="forum" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+              <MessageSquare className="h-5 w-5" /> 论坛
+            </TabsTrigger>
+            <TabsTrigger value="services" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+              <FileText className="h-5 w-5" /> 服务
+            </TabsTrigger>
+            {user?.role === 'super' && (
+              <TabsTrigger value="ling" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+                <IdCard className="h-5 w-5" /> 关于Ling
+              </TabsTrigger>
+            )}
+            <TabsTrigger value="users" className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-slate-500 data-[state=active]:text-blue-400">
+              <Users className="h-5 w-5" /> 用户
             </TabsTrigger>
           </TabsList>
 
