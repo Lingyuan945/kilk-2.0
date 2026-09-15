@@ -18,7 +18,7 @@ export default function HomePage() {
         <Skeleton className="h-56 w-full rounded-2xl" />
       ) : home ? (
         <div className="relative mb-10 animate-fade-in-up">
-          <div className="relative max-w-3xl">
+          <div className="mx-auto flex max-w-3xl flex-col items-center text-center">
             <p className="mb-3 inline-flex items-center gap-2 rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-300">
               <TerminalSquare className="h-3.5 w-3.5" />
               SYSTEM ONLINE · v2.0
