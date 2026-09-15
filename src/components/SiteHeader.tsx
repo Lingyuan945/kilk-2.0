@@ -1,15 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, LogOut, User as UserIcon, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
-  Sheet,
-  SheetClose,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
+  LogOut,
+  User as UserIcon,
+  Settings,
+  Home,
+  MessageSquare,
+  LifeBuoy,
+  Info,
+  UserRound,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,11 +25,11 @@ import AuthModal from '@/components/AuthModal';
 import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
-  { path: '/', label: '首页' },
-  { path: '/forum', label: '论坛' },
-  { path: '/service', label: '服务支持' },
-  { path: '/about', label: '关于我们' },
-  { path: '/about-ling', label: '关于 Ling' },
+  { path: '/', label: '首页', icon: Home },
+  { path: '/forum', label: '论坛', icon: MessageSquare },
+  { path: '/service', label: '服务支持', icon: LifeBuoy },
+  { path: '/about', label: '关于我们', icon: Info },
+  { path: '/about-ling', label: '关于 Ling', icon: UserRound },
 ];
 
 function isActivePath(pathname: string, path: string): boolean {
@@ -142,71 +143,32 @@ export default function SiteHeader() {
     </nav>
   );
 
-  const mobileNav = (
-    <Sheet>
-      <SheetTrigger asChild>
-        <Button variant="outline" size="icon" className="border-slate-700 bg-slate-800/60 text-slate-200 md:hidden" aria-label="打开导航菜单">
-          <Menu className="h-5 w-5" />
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="right" className="w-72 border-slate-800 bg-slate-900/95 text-slate-100 backdrop-blur-xl">
-        <SheetHeader className="border-b border-slate-800 pb-4">
-          <SheetTitle className="text-left text-lg font-bold">
-            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">kilk</span>
-          </SheetTitle>
-        </SheetHeader>
-        <nav className="mt-4 flex flex-col gap-1">
-          {NAV_ITEMS.map((item) => (
-            <SheetClose asChild key={item.path}>
-              <NavLink
-                to={item.path}
-                end={item.path === '/'}
-                className={cn(
-                  'rounded-lg px-3 py-2.5 text-base font-medium transition-colors',
-                  isActivePath(pathname, item.path)
-                    ? 'bg-blue-500/10 text-blue-400'
-                    : 'text-slate-300 hover:bg-slate-800/70 hover:text-white',
-                )}
-              >
-                {item.label}
-              </NavLink>
-            </SheetClose>
-          ))}
-        </nav>
-
-        {/* 移动端用户区 */}
-        <div className="mt-6 border-t border-slate-800 pt-4">
-          {user ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.avatar || undefined} alt={user.username} />
-                  <AvatarFallback className="bg-blue-500/20 text-blue-300">{user.username?.[0]?.toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="text-sm font-medium text-slate-100">{user.name || user.username}</p>
-                  <p className="text-xs text-slate-400">@{user.username}</p>
-                </div>
-              </div>
-              <SheetClose asChild>
-                <Button variant="outline" className="w-full border-slate-700 text-slate-200" onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" /> 退出登录
-                </Button>
-              </SheetClose>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <SheetClose asChild>
-                <Button className="w-full" onClick={openLogin}>登录</Button>
-              </SheetClose>
-              <SheetClose asChild>
-                <Button variant="outline" className="w-full border-slate-700 text-slate-200" onClick={openRegister}>注册</Button>
-              </SheetClose>
-            </div>
-          )}
-        </div>
-      </SheetContent>
-    </Sheet>
+  // 手机端图标导航（与后台管理一致的样式：仅图标）
+  const mobileIconNav = (
+    <nav className="flex items-center gap-0.5 md:hidden">
+      {NAV_ITEMS.map((item) => {
+        const active = isActivePath(pathname, item.path);
+        const Icon = item.icon;
+        return (
+          <NavLink
+            key={item.path}
+            to={item.path}
+            end={item.path === '/'}
+            aria-label={item.label}
+            className={cn(
+              'flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-200',
+              active
+                ? item.path === '/about-ling'
+                  ? 'bg-amber-400/15 text-amber-300 shadow-[0_0_12px_hsl(45_97%_60%/0.35)]'
+                  : 'bg-blue-500/15 text-blue-400 shadow-[0_0_12px_hsl(217_91%_60%/0.35)]'
+                : 'text-slate-400 hover:bg-slate-800/70 hover:text-blue-300',
+            )}
+          >
+            <Icon className="h-5 w-5" />
+          </NavLink>
+        );
+      })}
+    </nav>
   );
 
   // 桌面端用户区
@@ -246,9 +208,9 @@ export default function SiteHeader() {
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
-    <div className="hidden items-center gap-2 md:flex">
+    <div className="flex items-center gap-2">
       <Button variant="outline" size="sm" className="border-slate-700 text-slate-200" onClick={openLogin}>登录</Button>
-      <Button size="sm" onClick={openRegister}>注册</Button>
+      <Button size="sm" className="hidden md:inline-flex" onClick={openRegister}>注册</Button>
     </div>
   );
 
@@ -274,9 +236,9 @@ export default function SiteHeader() {
             </span>
           </NavLink>
           {desktopNav}
+          {mobileIconNav}
           <div className="flex items-center gap-2">
             {desktopUser}
-            {mobileNav}
           </div>
         </div>
       </header>
