@@ -30,6 +30,18 @@ const imageUpload = multer({
   },
 });
 
+// 安全删除帖子图片物理文件（杜绝孤儿文件）
+function deleteImageFile(imagePath) {
+  try {
+    if (typeof imagePath !== 'string' || !imagePath.startsWith('/upload/') || imagePath.includes('..')) return;
+    const filename = path.basename(imagePath);
+    const fullPath = path.join(IMAGE_UPLOAD_DIR, filename);
+    if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+  } catch (err) {
+    console.error('[Forum] 删除物理图片失败:', imagePath, err.message);
+  }
+}
+
 // POST /api/forum/upload - 上传帖子图片（需登录）
 router.post('/upload', authRequired, imageUpload.single('image'), async (req, res) => {
   if (!req.file) {
@@ -239,18 +251,26 @@ router.put('/posts/:id', authRequired, async (req, res) => {
       [title.trim(), content.trim(), channel_id ? Number(channel_id) : null, id]
     );
 
-    // 同步帖子图片
+    // 同步帖子图片（先查旧图片，编辑后清理被移除的物理文件，杜绝孤儿）
+    const { rows: oldImages } = await db.query('SELECT image_path FROM forum_post_image WHERE post_id = $1', [id]);
+    const oldPaths = oldImages.map(r => r.image_path);
     await db.query('DELETE FROM forum_post_image WHERE post_id = $1', [id]);
+    const newPaths = [];
     if (Array.isArray(images) && images.length > 0) {
       const safe = images
         .filter((p) => typeof p === 'string' && p.startsWith('/upload/') && !p.includes('..'))
         .slice(0, 9);
       for (let i = 0; i < safe.length; i++) {
+        newPaths.push(safe[i]);
         await db.query(
           'INSERT INTO forum_post_image (post_id, image_path, sort) VALUES ($1, $2, $3)',
           [id, safe[i], i]
         );
       }
+    }
+    // 删除被移除的旧图片物理文件（杜绝孤儿）
+    for (const oldPath of oldPaths) {
+      if (!newPaths.includes(oldPath)) deleteImageFile(oldPath);
     }
 
     res.json({ ok: true, msg: '帖子已更新' });
@@ -272,9 +292,12 @@ router.delete('/posts/:id', authRequired, async (req, res) => {
       return res.status(403).json({ ok: false, msg: '无权删除该帖子' });
     }
 
+    // 删前查出图片路径，删数据库后清理物理文件（杜绝孤儿）
+    const { rows: postImages } = await db.query('SELECT image_path FROM forum_post_image WHERE post_id = $1', [id]);
     await db.query('DELETE FROM forum_reply WHERE post_id = $1', [id]);
     await db.query('DELETE FROM forum_post_image WHERE post_id = $1', [id]);
     await db.query('DELETE FROM forum_post WHERE id = $1', [id]);
+    for (const img of postImages) deleteImageFile(img.image_path);
     res.json({ ok: true, msg: '删除成功' });
   } catch (err) {
     console.error('[Forum] 删除帖子错误:', err);
