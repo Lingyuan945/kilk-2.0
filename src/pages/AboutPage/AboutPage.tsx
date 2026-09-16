@@ -32,23 +32,41 @@ const FEATURES = [
   },
 ];
 
-const TECH_STACK_ITEMS = [
-  { icon: '⚛️', name: 'React 19', category: '前端' },
-  { icon: '📘', name: 'TypeScript', category: '前端' },
-  { icon: '⚡', name: 'Vite', category: '前端' },
-  { icon: '🎨', name: 'Tailwind CSS', category: '前端' },
-  { icon: '🧩', name: 'shadcn/ui', category: '前端' },
-  { icon: '🛣️', name: 'React Router', category: '前端' },
-  { icon: '🟢', name: 'Node.js', category: '后端' },
-  { icon: '🚂', name: 'Express', category: '后端' },
-  { icon: '🐘', name: 'PostgreSQL', category: '数据库' },
-  { icon: '🔐', name: 'JWT', category: '后端' },
-  { icon: '🛡️', name: 'bcrypt', category: '后端' },
-  { icon: '🐧', name: 'Linux', category: '运维' },
-  { icon: '🌐', name: 'Apache', category: '运维' },
-  { icon: '🔒', name: 'SSL 证书', category: '运维' },
-  { icon: '📦', name: 'Git', category: '运维' },
-  { icon: '🔄', name: 'acme.sh', category: '运维' },
+const TECH_GROUPS = [
+  {
+    label: '前端',
+    reverse: false,
+    items: [
+      { icon: '⚛️', name: 'React 19' },
+      { icon: '📘', name: 'TypeScript' },
+      { icon: '⚡', name: 'Vite' },
+      { icon: '🎨', name: 'Tailwind CSS' },
+      { icon: '🧩', name: 'shadcn/ui' },
+      { icon: '🛣️', name: 'React Router' },
+    ],
+  },
+  {
+    label: '后端',
+    reverse: true,
+    items: [
+      { icon: '🟢', name: 'Node.js' },
+      { icon: '🚂', name: 'Express' },
+      { icon: '🔐', name: 'JWT' },
+      { icon: '🛡️', name: 'bcrypt' },
+      { icon: '🔌', name: 'REST API' },
+    ],
+  },
+  {
+    label: '数据库',
+    reverse: false,
+    items: [
+      { icon: '🐘', name: 'PostgreSQL' },
+      { icon: '📊', name: '关系型数据库' },
+      { icon: '🔄', name: '数据迁移' },
+      { icon: '🛡️', name: 'SQL 注入防护' },
+      { icon: '📦', name: '连接池' },
+    ],
+  },
 ];
 
 export default function AboutPage() {
@@ -100,21 +118,26 @@ export default function AboutPage() {
           <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
           技术栈
         </h2>
-        <div className="marquee relative overflow-hidden">
-          <div className="marquee-track flex gap-3 md:gap-4">
-            {[...TECH_STACK_ITEMS, ...TECH_STACK_ITEMS].map((tech, i) => (
-              <div key={i} className="flex shrink-0 items-center gap-2.5 rounded-xl border border-slate-700/50 bg-slate-800/40 px-4 py-2.5 md:gap-3 md:px-5 md:py-3">
-                <span className="text-xl md:text-2xl">{tech.icon}</span>
-                <div>
-                  <p className="text-xs font-semibold text-slate-100 md:text-sm">{tech.name}</p>
-                  <p className="text-[10px] text-slate-400 md:text-xs">{tech.category}</p>
+        <div className="space-y-3">
+          {TECH_GROUPS.map((group, gi) => (
+            <div key={gi} className="flex items-center gap-3">
+              <span className="shrink-0 rounded-md border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-[10px] font-semibold text-blue-300 md:px-3 md:text-xs">
+                {group.label}
+              </span>
+              <div className="marquee relative flex-1 overflow-hidden">
+                <div className={`${group.reverse ? 'marquee-track-reverse' : 'marquee-track'} flex gap-2 md:gap-3`}>
+                  {[...group.items, ...group.items].map((tech, i) => (
+                    <div key={i} className="flex shrink-0 items-center gap-2 rounded-lg border border-slate-700/50 bg-slate-800/40 px-3 py-1.5 md:gap-2.5 md:px-4 md:py-2">
+                      <span className="text-base md:text-lg">{tech.icon}</span>
+                      <span className="text-[11px] font-medium text-slate-200 md:text-xs">{tech.name}</span>
+                    </div>
+                  ))}
                 </div>
+                <div className="pointer-events-none absolute inset-y-0 left-0 w-8 bg-gradient-to-r from-slate-950 to-transparent md:w-12" />
+                <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-r from-transparent to-slate-950 md:w-12" />
               </div>
-            ))}
-          </div>
-          {/* 渐变遮罩 */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-slate-950 to-transparent md:w-20" />
-          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-r from-transparent to-slate-950 md:w-20" />
+            </div>
+          ))}
         </div>
       </section>
 
