@@ -62,11 +62,11 @@ export default function AboutPage() {
           <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
           平台特性
         </h2>
-        <div className="grid gap-2 md:grid-cols-2 md:gap-4">
+        <div className="grid grid-cols-2 gap-2 md:gap-4">
           {FEATURES.map((f, i) => (
             <div key={i} className={`animate-fade-in-up stagger-delay-${i + 1}`}>
               <Card className={`glass-card glass-card-hover h-full ${f.glow} hover-lift`}>
-                <CardContent className="flex gap-2.5 p-3 md:gap-4 md:p-6">
+                <CardContent className="flex flex-col gap-2 p-3 md:flex-row md:gap-4 md:p-6">
                   <div className={`icon-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border ${f.color} md:h-11 md:w-11`}>
                     <f.icon className="h-4 w-4 md:h-5 md:w-5" />
                   </div>
