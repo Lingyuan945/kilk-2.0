@@ -1,0 +1,26 @@
+[
+    {
+        "id": "1",
+        "name": "技术交流",
+        "description": "",
+        "moderator_id": "1",
+        "sort": "3",
+        "create_time": "2026-09-02 14:26:49"
+    },
+    {
+        "id": "2",
+        "name": "日常",
+        "description": "",
+        "moderator_id": "0",
+        "sort": "2",
+        "create_time": "2026-09-02 14:26:49"
+    },
+    {
+        "id": "3",
+        "name": "站务公告",
+        "description": "网站更新与官方公告",
+        "moderator_id": "1",
+        "sort": "1",
+        "create_time": "2026-09-02 14:26:49"
+    }
+]
