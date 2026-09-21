@@ -49,13 +49,8 @@ const STATUS: Record<Incident['status'], { label: string; cls: string }> = {
 function formatTime(s?: string | null) {
   if (!s) return '-';
   const d = new Date(s);
-  const now = new Date();
-  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
-  if (diff < 60) return '刚刚';
-  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
-  if (diff < 86400 && now.getDate() === d.getDate()) return `${Math.floor(diff / 3600)} 小时前`;
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
 function formatDuration(min?: number | null) {
