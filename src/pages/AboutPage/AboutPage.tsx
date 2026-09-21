@@ -1,4 +1,5 @@
-import { Code2, Server, Shield, Heart } from 'lucide-react';
+import { Code2, Server, Shield, Heart, UserRound, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 
 const FEATURES = [
@@ -109,6 +110,28 @@ export default function AboutPage() {
               </Card>
             </div>
           ))}
+
+          {/* 开发者入口：从导航隐藏后，此处为进入开发者页面的入口 */}
+          <div className="animate-fade-in-up stagger-delay-5 col-span-2">
+            <Link to="/about-ling" className="group block h-full">
+              <Card className="glass-card glass-card-hover h-full hover-lift">
+                <CardContent className="flex items-center gap-2.5 p-3 md:gap-5 md:p-6">
+                  <div className="icon-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_20px_hsl(45_97%_60%/0.15)] md:h-11 md:w-11">
+                    <UserRound className="h-4 w-4 md:h-5 md:w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="mb-0.5 text-[13px] font-semibold text-slate-100 md:mb-1 md:text-base">开发者团队</h3>
+                    <p className="text-[11px] leading-snug text-slate-400 md:text-sm md:leading-relaxed">
+                      查看开发团队全栈 / 前端 / 后端工程师名片与介绍
+                    </p>
+                  </div>
+                  <span className="shrink-0 inline-flex items-center gap-1 text-xs font-medium text-amber-300 transition-transform duration-300 group-hover:translate-x-1 md:text-sm">
+                    进入 <ArrowRight className="h-3.5 w-3.5" />
+                  </span>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         </div>
       </section>
 

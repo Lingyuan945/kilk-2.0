@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LogOut,
@@ -27,12 +27,14 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { path: '/', label: '首页', icon: Home },
-  { path: '/hotel', label: '红树林酒店运维', icon: Building2 },
-  { path: '/notice', label: '公告', icon: Megaphone },
+  { path: '/hotel', label: '酒店运维', icon: Building2 },
   { path: '/service', label: '服务支持', icon: LifeBuoy },
+  { path: '/notice', label: '公告', icon: Megaphone },
   { path: '/about', label: '关于我们', icon: Info },
-  { path: '/about-ling', label: '开发者', icon: UserRound },
 ];
+
+// 开发者入口：默认从导航隐藏，仅在进入开发者页面时临时显示
+const DEV_NAV_ITEM = { path: '/about-ling', label: '开发者', icon: UserRound };
 
 function isActivePath(pathname: string, path: string): boolean {
   if (path === '/') return pathname === '/';
@@ -55,8 +57,14 @@ export default function SiteHeader() {
   const [indicator, setIndicator] = useState({ left: 0, width: 0, visible: false });
   const [scrolled, setScrolled] = useState(false);
 
+  const showDevNav = isActivePath(pathname, '/about-ling');
+  const visibleNav = useMemo(
+    () => (showDevNav ? [...NAV_ITEMS, DEV_NAV_ITEM] : NAV_ITEMS),
+    [showDevNav]
+  );
+
   const updateIndicator = useCallback(() => {
-    const activeItem = NAV_ITEMS.find((item) => isActivePath(pathname, item.path));
+    const activeItem = visibleNav.find((item) => isActivePath(pathname, item.path));
     if (!activeItem) {
       setIndicator((prev) => ({ ...prev, visible: false }));
       return;
@@ -72,7 +80,7 @@ export default function SiteHeader() {
         visible: true,
       });
     }
-  }, [pathname]);
+  }, [pathname, visibleNav]);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => updateIndicator());
@@ -111,7 +119,7 @@ export default function SiteHeader() {
 
   const desktopNav = (
     <nav ref={navRef} className="relative hidden items-center gap-1 md:flex">
-      {NAV_ITEMS.map((item) => (
+      {visibleNav.map((item) => (
         <NavLink
           key={item.path}
           to={item.path}
@@ -149,7 +157,7 @@ export default function SiteHeader() {
   // 手机端图标导航（与后台管理一致的样式：仅图标）
   const mobileIconNav = (
     <nav className="flex items-center gap-0.5 md:hidden">
-      {NAV_ITEMS.map((item) => {
+      {visibleNav.map((item) => {
         const active = isActivePath(pathname, item.path);
         const Icon = item.icon;
         return (
