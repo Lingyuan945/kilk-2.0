@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Search, Plus, Building2, ImagePlus, Loader2, Wrench, CheckCircle2, Clock3,
-  Timer, Trash2, RotateCcw, ChevronLeft,
+  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3, ClipboardList, ScanLine,
 } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -92,6 +92,9 @@ export default function HotelDetailPage() {
     description: '',
     attachment: '',
   });
+
+  // 功能模块切换
+  const [module, setModule] = useState<'incident' | 'dashboard'>('incident');
 
   // 加载酒店配置
   useEffect(() => {
@@ -320,6 +323,71 @@ export default function HotelDetailPage() {
         </div>
       )}
 
+      {/* 功能模块入口 */}
+      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <button
+          onClick={() => setModule('incident')}
+          className={cn(
+            'group rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5',
+            module === 'incident'
+              ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_24px_hsl(189_94%_43%/0.2)]'
+              : 'border-slate-800 bg-slate-900/50 hover:border-slate-600',
+          )}
+        >
+          <div className={cn(
+            'mb-2 flex h-9 w-9 items-center justify-center rounded-xl',
+            module === 'incident' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400 group-hover:text-cyan-300',
+          )}>
+            <Wrench className="h-4.5 w-4.5" />
+          </div>
+          <div className="text-sm font-semibold text-slate-100">故障登记</div>
+          <div className="mt-0.5 text-xs text-slate-500">报障、处理与跟踪</div>
+        </button>
+
+        <button
+          onClick={() => setModule('dashboard')}
+          className={cn(
+            'group rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5',
+            module === 'dashboard'
+              ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_24px_hsl(189_94%_43%/0.2)]'
+              : 'border-slate-800 bg-slate-900/50 hover:border-slate-600',
+          )}
+        >
+          <div className={cn(
+            'mb-2 flex h-9 w-9 items-center justify-center rounded-xl',
+            module === 'dashboard' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400 group-hover:text-cyan-300',
+          )}>
+            <BarChart3 className="h-4.5 w-4.5" />
+          </div>
+          <div className="text-sm font-semibold text-slate-100">运维看板</div>
+          <div className="mt-0.5 text-xs text-slate-500">趋势分布与效率统计</div>
+        </button>
+
+        <div
+          className="group cursor-not-allowed rounded-2xl border border-slate-800/60 bg-slate-900/30 p-4 opacity-60"
+          title="即将上线"
+        >
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-500">
+            <ClipboardList className="h-4.5 w-4.5" />
+          </div>
+          <div className="text-sm font-semibold text-slate-300">失物招领</div>
+          <div className="mt-0.5 text-xs text-slate-500">遗失登记与领取（即将上线）</div>
+        </div>
+
+        <div
+          className="group cursor-not-allowed rounded-2xl border border-slate-800/60 bg-slate-900/30 p-4 opacity-60"
+          title="即将上线"
+        >
+          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-500">
+            <ScanLine className="h-4.5 w-4.5" />
+          </div>
+          <div className="text-sm font-semibold text-slate-300">客房巡检</div>
+          <div className="mt-0.5 text-xs text-slate-500">巡检任务与记录（即将上线）</div>
+        </div>
+      </div>
+
+      {module === 'incident' && (
+      <>
       <div className="grid gap-6 lg:grid-cols-3">
         {/* 左侧：列表 */}
         <div className="lg:col-span-2">
@@ -637,9 +705,147 @@ export default function HotelDetailPage() {
           </div>
         </div>
       </div>
+      </>
+      )}
+
+      {module === 'dashboard' && (
+        <Dashboard incidents={incidents} loading={loading} />
+      )}
     </div>
   );
 }
+
+function Dashboard({ incidents, loading }: { incidents: Incident[]; loading: boolean }) {
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-cyan-400" />
+      </div>
+    );
+  }
+
+  const total = incidents.length;
+  const done = incidents.filter((i) => i.status === 'done').length;
+  const open = total - done;
+  const doneRate = total ? Math.round((done / total) * 100) : 0;
+
+  // 近 7 天每日新增
+  const days: { label: string; count: number }[] = [];
+  for (let d = 6; d >= 0; d--) {
+    const dt = new Date();
+    dt.setDate(dt.getDate() - d);
+    const key = `${dt.getMonth() + 1}/${dt.getDate()}`;
+    const count = incidents.filter((i) => {
+      const cd = new Date(i.created_at);
+      return cd.getMonth() === dt.getMonth() && cd.getDate() === dt.getDate();
+    }).length;
+    days.push({ label: key, count });
+  }
+  const maxDay = Math.max(1, ...days.map((d) => d.count));
+
+  // 类别分布
+  const catMap = new Map<string, number>();
+  incidents.forEach((i) => catMap.set(i.category, (catMap.get(i.category) || 0) + 1));
+  const cats = [...catMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 6);
+  const maxCat = Math.max(1, ...cats.map((c) => c[1]));
+
+  // 楼栋分布
+  const bMap = new Map<string, number>();
+  incidents.forEach((i) => bMap.set(i.building || '其他', (bMap.get(i.building || '其他') || 0) + 1));
+  const buildings = [...bMap.entries()].sort((a, b) => b[1] - a[1]);
+
+  // 平均处理时长（分钟）
+  const doneItems = incidents.filter((i) => i.status === 'done' && i.total_duration);
+  const avgMin = doneItems.length
+    ? Math.round(doneItems.reduce((s, i) => s + Number(i.total_duration), 0) / doneItems.length)
+    : 0;
+
+  const cards = [
+    { label: '故障总数', value: total, cls: 'text-slate-100' },
+    { label: '未完成', value: open, cls: 'text-amber-300' },
+    { label: '完成率', value: `${doneRate}%`, cls: 'text-emerald-300' },
+    { label: '平均处理时长', value: avgMin ? (avgMin < 60 ? `${avgMin} 分` : `${(avgMin / 60).toFixed(1)} 小时`) : '-', cls: 'text-cyan-300' },
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* 顶部小统计 */}
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {cards.map((card) => (
+          <div key={card.label} className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4">
+            <div className="text-xs text-slate-500">{card.label}</div>
+            <div className={cn('mt-1 text-2xl font-bold tabular-nums', card.cls)}>{card.value}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* 近 7 天趋势 */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="mb-4 text-sm font-semibold text-slate-100">近 7 天新增故障</div>
+          <div className="flex h-32 items-end gap-2">
+            {days.map((d) => (
+              <div key={d.label} className="flex flex-1 flex-col items-center gap-1.5">
+                <span className="text-[11px] text-slate-400">{d.count || ''}</span>
+                <div
+                  className="w-full rounded-t-md bg-gradient-to-t from-cyan-500/40 to-cyan-400/80"
+                  style={{ height: `${(d.count / maxDay) * 100}%`, minHeight: d.count ? '6px' : '2px' }}
+                />
+                <span className="text-[10px] text-slate-500">{d.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 类别分布 */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="mb-4 text-sm font-semibold text-slate-100">故障类别分布</div>
+          {cats.length === 0 ? (
+            <div className="py-8 text-center text-sm text-slate-500">暂无数据</div>
+          ) : (
+            <div className="space-y-3">
+              {cats.map(([name, count]) => (
+                <div key={name}>
+                  <div className="mb-1 flex items-center justify-between text-xs">
+                    <span className="text-slate-300">{name}</span>
+                    <span className="text-slate-500">{count}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-slate-800">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-blue-500 to-cyan-400"
+                      style={{ width: `${(count / maxCat) * 100}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 楼栋分布 */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-5 md:col-span-2">
+          <div className="mb-4 text-sm font-semibold text-slate-100">楼栋分布</div>
+          {buildings.length === 0 ? (
+            <div className="py-8 text-center text-sm text-slate-500">暂无数据</div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {buildings.map(([name, count]) => (
+                <span
+                  key={name}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-800/70 px-3 py-1.5 text-xs text-slate-300"
+                >
+                  {name}
+                  <span className="font-semibold text-cyan-300">{count}</span>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
 function Field({
   label,
