@@ -291,33 +291,42 @@ export default function HotelDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-20 pt-8 md:px-8 md:pt-12">
-      {/* 页头：返回键左对齐，标题区居中 */}
-      <div className="mb-8">
+      {/* 页头 */}
+      <div className="mb-8 text-center">
         {module === 'select' ? (
           <Link
             to="/hotel"
-            className="mb-8 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-blue-400"
+            className="mb-4 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-blue-400"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> 返回运维中心
           </Link>
         ) : (
           <button
             onClick={() => setModule('select')}
-            className="mb-8 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-cyan-400"
+            className="mb-4 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-cyan-400"
           >
             <ChevronLeft className="h-3.5 w-3.5" /> 选择功能
           </button>
         )}
-        <div className="text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-700/60 px-3 py-1 text-[11px] font-medium tracking-[0.2em] text-slate-500">
-            <Building2 className="h-3.5 w-3.5" />
-            HOTEL OPERATIONS
-          </div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-100 md:text-4xl">
-            {hotel.name}
-          </h1>
-          <p className="mt-3 text-sm text-slate-400">客房故障登记 · 跟踪处理 · 实时统计</p>
+        <div
+          className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-widest"
+          style={{ borderColor: `${theme}44`, color: theme, backgroundColor: `${theme}10` }}
+        >
+          <Building2 className="h-3.5 w-3.5" />
+          HOTEL OPERATIONS
         </div>
+        <h1
+          className="text-3xl font-bold tracking-tight md:text-4xl"
+          style={{
+            backgroundImage: `linear-gradient(90deg, ${theme}, ${theme}cc, ${theme})`,
+            WebkitBackgroundClip: 'text',
+            backgroundClip: 'text',
+            color: 'transparent',
+          }}
+        >
+          {hotel.name}
+        </h1>
+        <p className="mt-2 text-sm text-slate-400">客房故障登记 · 跟踪处理 · 实时统计</p>
       </div>
 
       {/* 统计卡片 */}
