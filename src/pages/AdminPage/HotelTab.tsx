@@ -64,8 +64,8 @@ export default function HotelTab() {
     code: '',
     theme_color: THEME_COLORS[0],
     buildings: [] as Array<{ id: string; name: string }>,
-    categories: '',
-    device_types: '',
+    categories: [] as Array<{ name: string }>,
+    device_types: [] as Array<{ name: string }>,
     enabled: true,
     sort: 0,
     description: '',
@@ -98,8 +98,8 @@ export default function HotelTab() {
       code: '',
       theme_color: THEME_COLORS[0],
       buildings: [],
-      categories: '',
-      device_types: '',
+      categories: [],
+      device_types: [],
       enabled: true,
       sort: 0,
       description: '',
@@ -116,8 +116,8 @@ export default function HotelTab() {
       code: h.code,
       theme_color: h.theme_color,
       buildings: parseBuildings(h.buildings),
-      categories: toLines(h.categories),
-      device_types: toLines(h.device_types),
+      categories: (Array.isArray(h.categories) ? h.categories : []).map((x) => ({ name: String(x) })),
+      device_types: (Array.isArray(h.device_types) ? h.device_types : []).map((x) => ({ name: String(x) })),
       enabled: h.enabled === 1,
       sort: h.sort,
       description: h.description || '',
@@ -130,8 +130,8 @@ export default function HotelTab() {
   const handleSubmit = async () => {
     if (!form.name.trim()) return flash('酒店名称必填', 'err');
     if (!form.buildings.some((r) => r.name.trim())) return flash('请至少填写一个楼栋名称', 'err');
-    if (!fromLines(form.categories).length) return flash('请至少填写一个故障类别', 'err');
-    if (!fromLines(form.device_types).length) return flash('请至少填写一个设备类型', 'err');
+    if (!form.categories.some((r) => r.name.trim())) return flash('请至少填写一个故障类别', 'err');
+    if (!form.device_types.some((r) => r.name.trim())) return flash('请至少填写一个设备类型', 'err');
     setSaving(true);
     try {
       const payload = {
@@ -139,8 +139,8 @@ export default function HotelTab() {
         code: form.code,
         theme_color: form.theme_color,
         buildings: form.buildings.filter((r) => r.name.trim()).map((r) => `${r.id.trim()}=${r.name.trim()}`),
-        categories: fromLines(form.categories),
-        device_types: fromLines(form.device_types),
+        categories: form.categories.filter((r) => r.name.trim()).map((r) => r.name.trim()),
+        device_types: form.device_types.filter((r) => r.name.trim()).map((r) => r.name.trim()),
         enabled: form.enabled,
         sort: Number(form.sort) || 0,
         description: form.description,
@@ -351,22 +351,80 @@ export default function HotelTab() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-400">故障类别 *（每行一个）</Label>
-              <Textarea
-                value={form.categories}
-                onChange={(e) => setForm((f) => ({ ...f, categories: e.target.value }))}
-                rows={6}
-                placeholder={'网络故障\n设备故障\n水电故障'}
-              />
+              <Label className="text-xs text-slate-400">故障类别 *</Label>
+              <div className="space-y-2">
+                {form.categories.map((row, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={row.name}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          categories: f.categories.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
+                        }))
+                      }
+                      placeholder="故障类别名称"
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({ ...f, categories: f.categories.filter((_, i) => i !== idx) }))
+                      }
+                      className="shrink-0 rounded-lg border border-rose-500/25 bg-rose-500/5 px-2 py-1.5 text-xs text-rose-300/80 transition-all hover:bg-rose-500/20"
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, categories: [...f.categories, { name: '' }] }))
+                  }
+                  className="w-full rounded-lg border border-dashed border-slate-700 py-2 text-xs text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-300"
+                >
+                  + 添加故障类别
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-400">设备类型 *（每行一个）</Label>
-              <Textarea
-                value={form.device_types}
-                onChange={(e) => setForm((f) => ({ ...f, device_types: e.target.value }))}
-                rows={6}
-                placeholder={'电视\n空调\n热水器\n门锁'}
-              />
+              <Label className="text-xs text-slate-400">设备类型 *</Label>
+              <div className="space-y-2">
+                {form.device_types.map((row, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={row.name}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          device_types: f.device_types.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
+                        }))
+                      }
+                      placeholder="设备类型名称"
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({ ...f, device_types: f.device_types.filter((_, i) => i !== idx) }))
+                      }
+                      className="shrink-0 rounded-lg border border-rose-500/25 bg-rose-500/5 px-2 py-1.5 text-xs text-rose-300/80 transition-all hover:bg-rose-500/20"
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, device_types: [...f.device_types, { name: '' }] }))
+                  }
+                  className="w-full rounded-lg border border-dashed border-slate-700 py-2 text-xs text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-300"
+                >
+                  + 添加设备类型
+                </button>
+              </div>
             </div>
           </div>
 
