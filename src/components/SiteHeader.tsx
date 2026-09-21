@@ -5,7 +5,7 @@ import {
   User as UserIcon,
   Settings,
   Home,
-  MessageSquare,
+  Megaphone,
   LifeBuoy,
   Info,
   UserRound,
@@ -28,7 +28,7 @@ import { cn } from '@/lib/utils';
 const NAV_ITEMS = [
   { path: '/', label: '首页', icon: Home },
   { path: '/hotel', label: '红树林酒店运维', icon: Building2 },
-  { path: '/forum', label: '论坛', icon: MessageSquare },
+  { path: '/notice', label: '公告', icon: Megaphone },
   { path: '/service', label: '服务支持', icon: LifeBuoy },
   { path: '/about', label: '关于我们', icon: Info },
   { path: '/about-ling', label: '开发者', icon: UserRound },
@@ -36,7 +36,7 @@ const NAV_ITEMS = [
 
 function isActivePath(pathname: string, path: string): boolean {
   if (path === '/') return pathname === '/';
-  if (path === '/forum') return pathname.startsWith('/forum') || pathname.startsWith('/post');
+  if (path === '/notice') return pathname.startsWith('/notice');
   if (path === '/about-ling') return pathname === '/about-ling' || pathname.startsWith('/developer/');
   // 精确匹配：pathname === path 或 pathname 以 path/ 开头，避免 /about 匹配 /about-ling
   return pathname === path || pathname.startsWith(path + '/');

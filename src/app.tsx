@@ -6,8 +6,7 @@ import Layout from '@/components/Layout';
 // 页面级懒加载：每个页面独立 chunk，首屏只加载当前页
 const AboutPage = lazy(() => import('@/pages/AboutPage/AboutPage'));
 const HomePage = lazy(() => import('@/pages/HomePage/HomePage'));
-const ForumPage = lazy(() => import('@/pages/ForumPage/ForumPage'));
-const PostDetailPage = lazy(() => import('@/pages/PostDetailPage/PostDetailPage'));
+const NoticePage = lazy(() => import('@/pages/NoticePage/NoticePage'));
 const ServicePage = lazy(() => import('@/pages/ServicePage/ServicePage'));
 const UserProfilePage = lazy(() => import('@/pages/UserProfilePage/UserProfilePage'));
 const AdminPage = lazy(() => import('@/pages/AdminPage/AdminPage'));
@@ -36,8 +35,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="hotel" element={<HotelPage />} />
-          <Route path="forum" element={<ForumPage />} />
-          <Route path="post/:id" element={<PostDetailPage />} />
+          <Route path="notice" element={<NoticePage />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="about-ling" element={<DevelopersListPage />} />

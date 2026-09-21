@@ -12,6 +12,7 @@ import adminRoutes from './routes/admin.js';
 import lingRoutes from './routes/ling.js';
 import developerRoutes from './routes/developers.js';
 import hotelRoutes from './routes/hotel.js';
+import noticeRoutes from './routes/notice.js';
 
 const app = express();
 
@@ -35,6 +36,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/ling', lingRoutes);
 app.use('/api/developers', developerRoutes);
 app.use('/api/hotel', hotelRoutes);
+app.use('/api/notice', noticeRoutes);
 
 // 404
 app.use('/api', (req, res) => {

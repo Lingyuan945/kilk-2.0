@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X, Search } from 'lucide-react';
+import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X, Search, Megaphone } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiDelete, apiPut, apiPost, apiUpload } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DevelopersTab from '@/pages/AdminPage/DevelopersTab';
 import ServiceTab from '@/pages/AdminPage/ServiceTab';
+import NoticeTab from '@/pages/AdminPage/NoticeTab';
 import {
   Select,
   SelectContent,
@@ -77,7 +78,7 @@ interface AdminReply {
 // 手机端底部导航会自动扩展；超过 MOBILE_MAX 个时，多余的自动折叠进"更多"面板。
 const ADMIN_TABS = [
   { value: 'home', label: '首页', fullLabel: '首页管理', icon: Home },
-  { value: 'forum', label: '论坛', fullLabel: '论坛管理', icon: MessageSquare },
+  { value: 'notice', label: '公告', fullLabel: '公告管理', icon: Megaphone },
   { value: 'services', label: '服务', fullLabel: '服务支持', icon: FileText },
   { value: 'ling', label: '开发者', fullLabel: '开发者管理', icon: IdCard },
   { value: 'users', label: '用户', fullLabel: '用户管理', icon: Users },
@@ -699,201 +700,8 @@ export default function AdminPage() {
             )}
           </TabsContent>
 
-          {/* 帖子管理 */}
-                    {/* 论坛管理：频道管理（上）+ 帖子管理（下） */}
-          <TabsContent value="forum">
-            {/* 频道管理 */}
-            <div className="mb-8">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                  <span className="h-4 w-1 rounded-full bg-gradient-to-b from-purple-400 to-pink-400" />
-                  频道管理
-                  <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-normal text-slate-400">
-                    {channelsLoading ? '…' : `${filteredChannels.length} 个`}
-                  </span>
-                </h3>
-                <Button onClick={openAddChannel} size="sm" className="bg-blue-600 hover:bg-blue-500">
-                  + 新增频道
-                </Button>
-              </div>
-              <p className="mb-3 text-xs text-slate-500">管理论坛频道，删除频道后该频道下的帖子将变为未分类</p>
-              <div className="relative mb-3">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                <Input
-                  value={channelKeyword}
-                  onChange={(e) => setChannelKeyword(e.target.value)}
-                  placeholder="搜索频道名称或版主…"
-                  className="bg-slate-900/60 pl-9 text-sm"
-                />
-              </div>
-              {channelsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-16 w-full rounded-lg bg-slate-800/60" />
-                  ))}
-                </div>
-              ) : filteredChannels.length === 0 ? (
-                <Card className="glass-card border-0">
-                  <CardContent className="py-12 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-10 w-10 text-slate-700" />
-                    <p className="text-sm text-slate-500">{channelKeyword ? '未找到匹配的频道' : '暂无频道'}</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <>
-                  <div className="space-y-3">
-                    {shownChannels.map((c, idx) => (
-                      <div key={c.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
-                        <Card className="glass-card border-0">
-                          <CardContent className="flex items-center justify-between gap-3 p-3.5">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-slate-100">{c.name}</span>
-                                <Badge className="bg-slate-800 text-slate-400 text-[10px]">排序 {c.sort}</Badge>
-                                {c.moderator_name && (
-                                  <Badge className="bg-purple-500/10 text-purple-400 text-[10px]">版主：{c.moderator_realname || c.moderator_name}</Badge>
-                                )}
-                              </div>
-                              {c.description && <p className="mt-1 text-xs text-slate-500 line-clamp-1">{c.description}</p>}
-                            </div>
-                            <div className="flex shrink-0 items-center gap-2">
-                              <Button variant="ghost" size="icon" className="text-blue-400 hover:bg-blue-500/10 hover:text-blue-400" onClick={() => openEditChannel(c)}>
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" className="text-red-400 hover:bg-red-500/10 hover:text-red-400" onClick={() => setDeleteTarget({ type: 'channels', id: c.id, name: c.name })}>
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                  {filteredChannels.length > visibleChannelCount && (
-                    <Button variant="ghost" size="sm" className="mt-3 w-full text-blue-400 hover:text-blue-300" onClick={() => setVisibleChannelCount((v) => v + 8)}>
-                      显示更多（已显示 {shownChannels.length}/{filteredChannels.length}）
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
-
-            {/* 帖子管理 */}
-            <div className="border-t border-slate-800 pt-6">
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-slate-200">
-                  <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
-                  帖子管理
-                  <span className="rounded-full bg-slate-800 px-2 py-0.5 text-[10px] font-normal text-slate-400">
-                    {postsLoading ? '…' : `${filteredPosts.length} 条`}
-                  </span>
-                </h3>
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="relative">
-                    <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
-                    <Input
-                      value={postKeyword}
-                      onChange={(e) => setPostKeyword(e.target.value)}
-                      placeholder="搜索标题 / 作者 / 内容…"
-                      className="w-44 bg-slate-900/60 pl-9 text-sm md:w-56"
-                    />
-                  </div>
-                  <Select value={postChannelFilter} onValueChange={setPostChannelFilter}>
-                    <SelectTrigger className="w-32 bg-slate-900/60 text-xs">
-                      <SelectValue placeholder="全部频道" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">全部频道</SelectItem>
-                      {channels.map((c) => (
-                        <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={postSort} onValueChange={setPostSort}>
-                    <SelectTrigger className="w-28 bg-slate-900/60 text-xs">
-                      <SelectValue placeholder="排序" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="newest">最新发布</SelectItem>
-                      <SelectItem value="views">最多浏览</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              {postsLoading ? (
-                <div className="space-y-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-20 w-full rounded-lg bg-slate-800/60" />
-                  ))}
-                </div>
-              ) : filteredPosts.length === 0 ? (
-                <Card className="glass-card border-0">
-                  <CardContent className="py-12 text-center">
-                    <MessageSquare className="mx-auto mb-3 h-10 w-10 text-slate-700" />
-                    <p className="text-sm text-slate-500">{postKeyword || postChannelFilter !== 'all' ? '未找到匹配的帖子' : '暂无帖子'}</p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <>
-                  <div className="space-y-3">
-                    {shownPosts.map((p, idx) => (
-                      <div key={p.id} className={`animate-fade-in-up stagger-delay-${Math.min(idx + 1, 10)}`}>
-                        <Card className="glass-card border-0">
-                          <CardContent className="flex items-start justify-between gap-3 p-3.5">
-                            <div className="min-w-0 flex-1">
-                              <h3 className="truncate text-sm font-medium text-slate-100">{p.title}</h3>
-                              <p className="mt-1 line-clamp-1 text-xs text-slate-500">{p.content}</p>
-                              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                                <span>作者：{p.author_name || p.username}</span>
-                                {p.channel_name && <Badge variant="secondary" className="border-slate-700 bg-slate-800/70 text-[10px] text-slate-400">{p.channel_name}</Badge>}
-                                <span className="flex items-center gap-1">
-                                  <Eye className="h-3 w-3" /> {p.view_count || 0}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Clock className="h-3 w-3" /> {formatTime(p.create_time)}
-                                </span>
-                              </div>
-                            </div>
-                            <div className="flex shrink-0 items-center gap-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-400"
-                                onClick={() => openManageReplies(p)}
-                                title="管理评论"
-                              >
-                                <MessageCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-blue-400 hover:bg-blue-500/10 hover:text-blue-400"
-                                onClick={() => openEditPost(p)}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="text-red-400 hover:bg-red-500/10 hover:text-red-400"
-                                onClick={() => setDeleteTarget({ type: 'posts', id: p.id, name: p.title })}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-                    ))}
-                  </div>
-                  {filteredPosts.length > visiblePostCount && (
-                    <Button variant="ghost" size="sm" className="mt-3 w-full text-blue-400 hover:text-blue-300" onClick={() => setVisiblePostCount((v) => v + 8)}>
-                      显示更多（已显示 {shownPosts.length}/{filteredPosts.length}）
-                    </Button>
-                  )}
-                </>
-              )}
-            </div>
+          {/* 帖子管理 */}          <TabsContent value="notice">
+            <NoticeTab />
           </TabsContent>
 
 
