@@ -25,13 +25,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import AuthModal from '@/components/AuthModal';
 import { cn } from '@/lib/utils';
 
-const NAV_ITEMS = [
+const NAV_ITEMS_BASE = [
   { path: '/', label: '首页', icon: Home },
-  { path: '/hotel', label: '酒店运维', icon: Building2 },
   { path: '/service', label: '服务支持', icon: LifeBuoy },
   { path: '/notice', label: '公告', icon: Megaphone },
   { path: '/about', label: '关于我们', icon: Info },
 ];
+
+const HOTEL_NAV_ITEM = { path: '/hotel', label: '酒店运维', icon: Building2 };
 
 // 开发者入口：默认从导航隐藏，仅在进入开发者页面时临时显示
 const DEV_NAV_ITEM = { path: '/about-ling', label: '开发者', icon: UserRound };
@@ -58,10 +59,13 @@ export default function SiteHeader() {
   const [scrolled, setScrolled] = useState(false);
 
   const showDevNav = isActivePath(pathname, '/about-ling');
-  const visibleNav = useMemo(
-    () => (showDevNav ? [...NAV_ITEMS, DEV_NAV_ITEM] : NAV_ITEMS),
-    [showDevNav]
-  );
+  const visibleNav = useMemo(() => {
+    let items = [...NAV_ITEMS_BASE];
+    // 酒店运维仅管理员可见
+    if (isAdmin) items = [items[0], HOTEL_NAV_ITEM, ...items.slice(1)];
+    if (showDevNav) items = [...items, DEV_NAV_ITEM];
+    return items;
+  }, [showDevNav, isAdmin]);
 
   const updateIndicator = useCallback(() => {
     const activeItem = visibleNav.find((item) => isActivePath(pathname, item.path));

@@ -1,7 +1,8 @@
 import { Suspense, lazy } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 import Layout from '@/components/Layout';
+import { useAuth } from '@/contexts/AuthContext';
 
 // 页面级懒加载：每个页面独立 chunk，首屏只加载当前页
 const AboutPage = lazy(() => import('@/pages/AboutPage/AboutPage'));
@@ -16,6 +17,20 @@ const DeveloperCardManagePage = lazy(() => import('@/pages/DeveloperCardManagePa
 const HotelPage = lazy(() => import('@/pages/HotelPage/HotelPage'));
 const HotelDetailPage = lazy(() => import('@/pages/HotelPage/HotelDetailPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
+
+// 管理员路由守卫：非管理员跳转首页
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { user, isAdmin, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+  if (!user || !isAdmin) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 /** 页面加载中的过渡占位 */
 function PageFallback() {
@@ -35,8 +50,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
-          <Route path="hotel" element={<HotelPage />} />
-          <Route path="hotel/:hotelId" element={<HotelDetailPage />} />
+          <Route path="hotel" element={<AdminRoute><HotelPage /></AdminRoute>} />
+          <Route path="hotel/:hotelId" element={<AdminRoute><HotelDetailPage /></AdminRoute>} />
           <Route path="notice" element={<NoticePage />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="about" element={<AboutPage />} />
@@ -44,7 +59,7 @@ export default function App() {
           <Route path="developer/me" element={<DeveloperCardManagePage />} />
           <Route path="developer/:username" element={<LingPage />} />
           <Route path="user/:id" element={<UserProfilePage />} />
-          <Route path="admin" element={<AdminPage />} />
+          <Route path="admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
         </Route>
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

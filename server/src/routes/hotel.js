@@ -46,7 +46,7 @@ function parseArr(v) {
 }
 
 // GET /api/hotels - 启用酒店列表（含每酒店故障统计），运维中心用
-router.get('/hotels', async (req, res) => {
+router.get('/hotels', authRequired, adminRequired, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT h.id, h.name, h.code, h.theme_color, h.buildings, h.categories, h.device_types,
@@ -103,7 +103,7 @@ router.get('/hotels/all', authRequired, adminRequired, async (req, res) => {
 });
 
 // GET /api/hotels/:id - 单个酒店（启用状态，运维页用）
-router.get('/hotels/:id', async (req, res) => {
+router.get('/hotels/:id', authRequired, adminRequired, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT id, name, code, theme_color, buildings, categories, device_types, enabled, sort, description, logo_url
@@ -238,7 +238,7 @@ async function hotelExists(hotelId) {
 }
 
 // GET /api/hotel/:hotelId/incidents - 列表（关键词搜索 + 状态筛选）+ 统计
-router.get('/hotel/:hotelId/incidents', async (req, res) => {
+router.get('/hotel/:hotelId/incidents', authRequired, adminRequired, async (req, res) => {
   try {
     const hotelId = Number(req.params.hotelId);
     if (!hotelId || !(await hotelExists(hotelId))) {
@@ -282,7 +282,7 @@ router.get('/hotel/:hotelId/incidents', async (req, res) => {
 });
 
 // POST /api/hotel/:hotelId/incidents - 登记故障
-router.post('/hotel/:hotelId/incidents', authOptional, async (req, res) => {
+router.post('/hotel/:hotelId/incidents', authRequired, adminRequired, async (req, res) => {
   try {
     const hotelId = Number(req.params.hotelId);
     if (!hotelId || !(await hotelExists(hotelId))) {
@@ -334,7 +334,7 @@ router.post('/hotel/:hotelId/incidents', authOptional, async (req, res) => {
 });
 
 // PUT /api/hotel/:hotelId/incidents/:id - 更新状态/内容（需登录）
-router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
+router.put('/hotel/:hotelId/incidents/:id', authRequired, adminRequired, async (req, res) => {
   const { hotelId, id } = req.params;
   const { status, description, category, device_type, building, attachment } = req.body;
   try {
