@@ -66,14 +66,10 @@ function formatDuration(min?: number | null) {
 }
 
 
-// 楼栋自动识别：支持后台每行 "楼栋名=前缀" 配置（如 别墅区=8）
-// 匹配规则：前缀精确匹配 > 名称含 "n号楼" > 默认第一栋
+// 楼栋自动识别：支持后台每行 "编号=名称" 配置（如 1=椰林酒店）
+// 匹配规则：前缀精确匹配 > 名称含 "n号楼" > 默认第一栋（去编号前缀）
 function autoBuilding(room: string, buildings?: string[]): string {
   if (!buildings || !buildings.length) return '';
-  const first = (buildings[0] || '').replace(/^\d+\s*/, '').trim();
-  const m = room.trim().match(/^(\d)/);
-  if (!m) return first;
-  const n = m[1];
   const parsed = buildings.map((line) => {
     const parts = String(line).split('=').map((s) => s.trim());
     let prefix = '';
@@ -90,6 +86,10 @@ function autoBuilding(room: string, buildings?: string[]): string {
     }
     return { name, prefix };
   });
+  const first = parsed[0]?.name || '';
+  const m = room.trim().match(/^(\d)/);
+  if (!m) return first;
+  const n = m[1];
   const hitPrefix = parsed.find((p) => p.prefix === n);
   if (hitPrefix) return hitPrefix.name;
   const hitName = parsed.find((p) => p.name.includes(`${n}号楼`));
@@ -138,7 +138,7 @@ export default function HotelDetailPage() {
         setHotel(data.data);
         setForm((f) => ({
           ...f,
-          building: data.data.buildings[0] || '',
+          building: autoBuilding('', data.data.buildings),
           category: data.data.categories[0] || '',
           device_type: data.data.device_types[0] || '',
         }));
@@ -193,7 +193,7 @@ export default function HotelDetailPage() {
       flash(`登记成功：${data.data.incident_no}`);
       setForm((f) => ({
         room_no: '',
-        building: keepForm ? f.building : hotel?.buildings[0] || '',
+        building: keepForm ? f.building : autoBuilding('', hotel?.buildings),
         status: 'pending',
         category: keepForm ? f.category : hotel?.categories[0] || '',
         device_type: keepForm ? f.device_type : hotel?.device_types[0] || '',
