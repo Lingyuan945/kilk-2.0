@@ -9,6 +9,7 @@ import {
   LifeBuoy,
   Info,
   UserRound,
+  Building2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,6 +27,7 @@ import { cn } from '@/lib/utils';
 
 const NAV_ITEMS = [
   { path: '/', label: '首页', icon: Home },
+  { path: '/hotel', label: '红树林酒店运维', icon: Building2 },
   { path: '/forum', label: '论坛', icon: MessageSquare },
   { path: '/service', label: '服务支持', icon: LifeBuoy },
   { path: '/about', label: '关于我们', icon: Info },

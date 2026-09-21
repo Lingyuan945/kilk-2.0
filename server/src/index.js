@@ -11,6 +11,7 @@ import homeRoutes from './routes/home.js';
 import adminRoutes from './routes/admin.js';
 import lingRoutes from './routes/ling.js';
 import developerRoutes from './routes/developers.js';
+import hotelRoutes from './routes/hotel.js';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use('/api/home', homeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ling', lingRoutes);
 app.use('/api/developers', developerRoutes);
+app.use('/api/hotel', hotelRoutes);
 
 // 404
 app.use('/api', (req, res) => {
