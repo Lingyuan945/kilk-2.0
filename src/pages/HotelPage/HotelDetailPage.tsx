@@ -18,13 +18,24 @@ type Incident = {
   category: string;
   device_type: string;
   description: string;
-  attachment: string;
+  attachment: string; // 后端存 JSON 字符串，前端解析为数组
   wait_duration: number;
   total_duration: number;
   created_by_name: string;
   created_at: string;
   repaired_at: string | null;
 };
+
+// 解析附件为数组（兼容旧数据：单字符串）
+function parseAttachments(raw: string): string[] {
+  if (!raw) return [];
+  try {
+    const arr = JSON.parse(raw);
+    return Array.isArray(arr) ? arr.filter(a => typeof a === 'string') : [];
+  } catch {
+    return raw.startsWith('/upload/') ? [raw] : [];
+  }
+}
 
 type Stats = { pending: number; processing: number; done: number; total: number };
 
@@ -118,7 +129,7 @@ export default function HotelDetailPage() {
     category: '',
     device_type: '',
     description: '',
-    attachment: '',
+    attachment: [] as string[],
   });
 
   // 表单校验错误
@@ -233,7 +244,7 @@ export default function HotelDetailPage() {
       category: keepForm ? f.category : hotel?.categories[0] || '',
       device_type: keepForm ? f.device_type : hotel?.device_types[0] || '',
       description: '',
-      attachment: '',
+      attachment: [],
     }));
     setErrors({});
     setEditingId(null);
@@ -251,7 +262,7 @@ export default function HotelDetailPage() {
       category: item.category,
       device_type: item.device_type,
       description: item.description,
-      attachment: item.attachment,
+      attachment: parseAttachments(item.attachment),
     });
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -262,7 +273,7 @@ export default function HotelDetailPage() {
       const fd = new FormData();
       fd.append('image', file);
       const res = await apiUpload<{ url: string }>('/hotel/upload', fd);
-      setForm((f) => ({ ...f, attachment: res.url }));
+      setForm((f) => ({ ...f, attachment: [...f.attachment, res.url] }));
     } catch (e) {
       flash((e as Error).message, 'err');
     } finally {
@@ -543,15 +554,20 @@ export default function HotelDetailPage() {
                         {item.description && (
                           <p className="mt-1.5 line-clamp-2 text-sm text-slate-300">{item.description}</p>
                         )}
-                        {item.attachment && (
-                          <a
-                            href={item.attachment}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-2 inline-block overflow-hidden rounded-lg border border-slate-700"
-                          >
-                            <img src={item.attachment} alt="故障附件" loading="lazy" className="h-14 w-20 object-cover" />
-                          </a>
+                        {parseAttachments(item.attachment).length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {parseAttachments(item.attachment).map((url, idx) => (
+                              <a
+                                key={idx}
+                                href={url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block overflow-hidden rounded-lg border border-slate-700"
+                              >
+                                <img src={url} alt={`故障附件 ${idx + 1}`} loading="lazy" className="h-14 w-20 object-cover" />
+                              </a>
+                            ))}
+                          </div>
                         )}
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
                           <span className="inline-flex items-center gap-1">
@@ -742,37 +758,41 @@ export default function HotelDetailPage() {
                 />
               </Field>
 
-              <Field label="故障附件">
-                {form.attachment ? (
-                  <div className="relative overflow-hidden rounded-lg border border-slate-700">
-                    <img src={form.attachment} alt="附件" className="h-24 w-full object-cover" />
-                    <button
-                      onClick={() => setForm((f) => ({ ...f, attachment: '' }))}
-                      className="absolute right-1.5 top-1.5 rounded-md bg-slate-950/80 px-2 py-0.5 text-xs text-rose-300 hover:bg-slate-950"
-                    >
-                      移除
-                    </button>
+              <Field label="故障附件（可添加多张）">
+                {form.attachment.length > 0 && (
+                  <div className="mb-2 grid grid-cols-3 gap-2">
+                    {form.attachment.map((url, idx) => (
+                      <div key={idx} className="relative overflow-hidden rounded-lg border border-slate-700">
+                        <img src={url} alt={`附件 ${idx + 1}`} className="h-20 w-full object-cover" />
+                        <button
+                          onClick={() => setForm((f) => ({ ...f, attachment: f.attachment.filter((_, i) => i !== idx) }))}
+                          className="absolute right-1 top-1 rounded-md bg-slate-950/80 px-1.5 py-0.5 text-xs text-rose-300 hover:bg-slate-950"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-700 py-5 text-slate-500 transition-colors hover:border-blue-500/50 hover:text-blue-300">
-                    {uploading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                    ) : (
-                      <ImagePlus className="h-5 w-5" />
-                    )}
-                    <span className="text-xs">{uploading ? '上传中…' : '点击上传图片（jpg/png）'}</span>
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleUpload(file);
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
                 )}
+                <label className="flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-slate-700 py-5 text-slate-500 transition-colors hover:border-blue-500/50 hover:text-blue-300">
+                  {uploading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <ImagePlus className="h-5 w-5" />
+                  )}
+                  <span className="text-xs">{uploading ? '上传中…' : form.attachment.length > 0 ? '继续添加图片' : '点击上传图片（jpg/png，可多选）'}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => {
+                      const files = Array.from(e.target.files || []);
+                      files.forEach((file) => handleUpload(file));
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
               </Field>
 
               <div className="grid grid-cols-2 gap-3">

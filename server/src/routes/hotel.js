@@ -201,10 +201,16 @@ router.delete('/hotels/:id', authRequired, adminRequired, async (req, res) => {
     const { rows } = await db.query('DELETE FROM hotels WHERE id = $1 RETURNING id', [id]);
     if (rows.length === 0) return res.status(404).json({ ok: false, msg: '酒店不存在' });
     for (const a of atts) {
-      const att = a.attachment;
-      if (att && att.startsWith('/upload/') && !att.includes('..')) {
-        const fullPath = path.join(UPLOAD_DIR, path.basename(att));
-        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+      let attList = [];
+      const attRaw = a.attachment;
+      if (attRaw) {
+        try { attList = JSON.parse(attRaw); } catch { attList = [attRaw]; }
+      }
+      for (const att of attList) {
+        if (att && typeof att === 'string' && att.startsWith('/upload/') && !att.includes('..')) {
+          const fullPath = path.join(UPLOAD_DIR, path.basename(att));
+          if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+        }
       }
     }
     res.json({ ok: true });
@@ -290,8 +296,14 @@ router.post('/hotel/:hotelId/incidents', authOptional, async (req, res) => {
     if (!device_type) return res.status(400).json({ ok: false, msg: '设备类型必填' });
 
     const incident_no = await nextIncidentNo();
-    const safeAttachment =
-      typeof attachment === 'string' && attachment.startsWith('/upload/') && !attachment.includes('..') ? attachment : '';
+    // 附件：支持多张图片（数组），存为 JSON 字符串
+    const safeAttachment = (() => {
+      let arr = [];
+      if (Array.isArray(attachment)) arr = attachment;
+      else if (typeof attachment === 'string' && attachment) arr = [attachment];
+      const filtered = arr.filter(a => typeof a === 'string' && a.startsWith('/upload/') && !a.includes('..'));
+      return filtered.length ? JSON.stringify(filtered) : '';
+    })();
     const createdBy = req.user?.id ?? null;
     const createdByName = req.user?.name || req.user?.username || '游客';
 
@@ -324,7 +336,7 @@ router.post('/hotel/:hotelId/incidents', authOptional, async (req, res) => {
 // PUT /api/hotel/:hotelId/incidents/:id - 更新状态/内容（需登录）
 router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
   const { hotelId, id } = req.params;
-  const { status, description, category, device_type, building } = req.body;
+  const { status, description, category, device_type, building, attachment } = req.body;
   try {
     const { rows: cur } = await db.query(
       'SELECT * FROM hotel_incident WHERE id = $1 AND hotel_id = $2',
@@ -346,6 +358,16 @@ router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
       if (cur[0].status === 'pending') wait = total;
     }
 
+    // 处理附件更新：如果传了 attachment（数组），重新校验并存为 JSON
+    let safeAttachment = null;
+    if (attachment !== undefined) {
+      let arr = [];
+      if (Array.isArray(attachment)) arr = attachment;
+      else if (typeof attachment === 'string' && attachment) arr = [attachment];
+      const filtered = arr.filter(a => typeof a === 'string' && a.startsWith('/upload/') && !a.includes('..'));
+      safeAttachment = filtered.length ? JSON.stringify(filtered) : '';
+    }
+
     const { rows } = await db.query(
       `UPDATE hotel_incident
        SET status = $1,
@@ -353,11 +375,12 @@ router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
            category = COALESCE($3, category),
            device_type = COALESCE($4, device_type),
            building = COALESCE($5, building),
-           wait_duration = $6,
-           total_duration = $7,
-           repaired_at = COALESCE($8, repaired_at),
+           attachment = COALESCE($6, attachment),
+           wait_duration = $7,
+           total_duration = $8,
+           repaired_at = COALESCE($9, repaired_at),
            updated_at = NOW()
-       WHERE id = $9 AND hotel_id = $10
+       WHERE id = $10 AND hotel_id = $11
        RETURNING *`,
       [
         status || cur[0].status,
@@ -365,6 +388,7 @@ router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
         category ?? null,
         device_type ?? null,
         building ?? null,
+        safeAttachment,
         wait,
         total,
         repairedAt,
@@ -388,10 +412,17 @@ router.delete('/hotel/:hotelId/incidents/:id', authRequired, adminRequired, asyn
       [id, hotelId]
     );
     if (rows.length === 0) return res.status(404).json({ ok: false, msg: '记录不存在' });
-    const att = rows[0].attachment;
-    if (att && att.startsWith('/upload/') && !att.includes('..')) {
-      const fullPath = path.join(UPLOAD_DIR, path.basename(att));
-      if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+    // 附件可能是 JSON 数组或单字符串
+    let atts = [];
+    const attRaw = rows[0].attachment;
+    if (attRaw) {
+      try { atts = JSON.parse(attRaw); } catch { atts = [attRaw]; }
+    }
+    for (const att of atts) {
+      if (att && typeof att === 'string' && att.startsWith('/upload/') && !att.includes('..')) {
+        const fullPath = path.join(UPLOAD_DIR, path.basename(att));
+        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+      }
     }
     res.json({ ok: true });
   } catch (err) {
