@@ -2,11 +2,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Search, Plus, Building2, ImagePlus, Loader2, Wrench, CheckCircle2, Clock3,
-  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3,
+  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3, AlertTriangle,
 } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import { cn } from '@/lib/utils';
+import EmptyState from '@/components/EmptyState';
 
 type Incident = {
   id: number;
@@ -125,6 +126,9 @@ export default function HotelDetailPage() {
     attachment: '',
   });
 
+  // 表单校验错误
+  const [errors, setErrors] = useState<{ room_no?: string; category?: string; device_type?: string }>({});
+
   // 功能模块切换
   const [module, setModule] = useState<'select' | 'incident' | 'dashboard'>('select');
 
@@ -182,8 +186,14 @@ export default function HotelDetailPage() {
   };
 
   const handleSubmit = async (keepForm: boolean) => {
-    if (!form.room_no.trim()) {
-      flash('请填写房间号码', 'err');
+    // 表单校验
+    const newErrors: typeof errors = {};
+    if (!form.room_no.trim()) newErrors.room_no = '请填写房间号码';
+    if (!form.category) newErrors.category = '请选择故障类别';
+    if (!form.device_type) newErrors.device_type = '请选择设备类型';
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) {
+      flash('请完善必填字段', 'err');
       formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       return;
     }
@@ -200,6 +210,7 @@ export default function HotelDetailPage() {
         description: '',
         attachment: '',
       }));
+      setErrors({});
       load();
     } catch (e) {
       flash((e as Error).message, 'err');
@@ -360,12 +371,13 @@ export default function HotelDetailPage() {
       {msg && (
         <div
           className={cn(
-            'mb-4 rounded-xl border px-4 py-3 text-sm backdrop-blur',
+            'fixed bottom-6 right-6 z-50 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm shadow-2xl backdrop-blur animate-fade-in-up',
             msg.type === 'ok'
-              ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
-              : 'border-rose-500/30 bg-rose-500/10 text-rose-300',
+              ? 'border-emerald-500/30 bg-emerald-500/15 text-emerald-300'
+              : 'border-rose-500/30 bg-rose-500/15 text-rose-300',
           )}
         >
+          {msg.type === 'ok' ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
           {msg.text}
         </div>
       )}
@@ -375,29 +387,29 @@ export default function HotelDetailPage() {
       <div className="mx-auto mt-6 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
         <button
           onClick={() => setModule('incident')}
-          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:bg-slate-900/90 hover:shadow-[0_0_40px_hsl(189_94%_43%/0.15)]"
+          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:border-cyan-400/40 hover:bg-slate-900/80"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 transition-transform duration-300 group-hover:scale-110">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
             <Wrench className="h-6 w-6" />
           </div>
           <div className="text-lg font-semibold text-slate-100">故障登记</div>
           <div className="mt-1 text-sm text-slate-400">客房故障报障、处理与全程跟踪</div>
           <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-400">
-            进入 <ChevronLeft className="h-4 w-4 rotate-180" />
+            进入 <ChevronLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-0.5" />
           </div>
         </button>
 
         <button
           onClick={() => setModule('dashboard')}
-          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:bg-slate-900/90 hover:shadow-[0_0_40px_hsl(189_94%_43%/0.15)]"
+          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:border-cyan-400/40 hover:bg-slate-900/80"
         >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 transition-transform duration-300 group-hover:scale-110">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
             <BarChart3 className="h-6 w-6" />
           </div>
           <div className="text-lg font-semibold text-slate-100">运维看板</div>
           <div className="mt-1 text-sm text-slate-400">故障趋势、类别分布与处理效率统计</div>
           <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-400">
-            进入 <ChevronLeft className="h-4 w-4 rotate-180" />
+            进入 <ChevronLeft className="h-4 w-4 rotate-180 transition-transform group-hover:translate-x-0.5" />
           </div>
         </button>
       </div>
@@ -415,7 +427,7 @@ export default function HotelDetailPage() {
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
                 placeholder="搜索房间号 / 编号 / 描述 / 楼栋…"
-                className="w-full rounded-xl border border-slate-700/70 bg-slate-900/60 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 outline-none transition-colors focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20"
+                className="w-full rounded-xl border border-slate-700/70 bg-slate-900/60 py-2.5 pl-9 pr-3 text-base text-slate-200 placeholder:text-slate-500 outline-none transition-colors focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 md:py-2 md:text-sm"
               />
             </div>
             <button
@@ -444,14 +456,24 @@ export default function HotelDetailPage() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-400" />
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 animate-pulse">
+                  <div className="flex items-center gap-2">
+                    <div className="h-5 w-16 rounded bg-slate-700/50" />
+                    <div className="h-5 w-20 rounded bg-slate-700/30" />
+                  </div>
+                  <div className="mt-2 h-3 w-48 rounded bg-slate-700/30" />
+                  <div className="mt-1 h-3 w-32 rounded bg-slate-700/20" />
+                </div>
+              ))}
             </div>
           ) : incidents.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-slate-700/70 py-16 text-slate-500">
-              <Wrench className="h-8 w-8 opacity-40" />
-              <p className="text-sm">暂无故障记录</p>
-            </div>
+            <EmptyState
+              icon={Wrench}
+              title="暂无故障记录"
+              description="提交第一条故障报障记录，开始跟踪处理流程"
+            />
           ) : (
             <div className="space-y-3">
               {incidents.map((item) => {
@@ -491,7 +513,7 @@ export default function HotelDetailPage() {
                             rel="noreferrer"
                             className="mt-2 inline-block overflow-hidden rounded-lg border border-slate-700"
                           >
-                            <img src={item.attachment} alt="故障附件" className="h-14 w-20 object-cover" />
+                            <img src={item.attachment} alt="故障附件" loading="lazy" className="h-14 w-20 object-cover" />
                           </a>
                         )}
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
@@ -569,7 +591,7 @@ export default function HotelDetailPage() {
                 />
               </Field>
 
-              <Field label="房间号码" required>
+              <Field label="房间号码" required error={errors.room_no}>
                 <input
                   value={form.room_no}
                   onChange={(e) => {
@@ -578,9 +600,16 @@ export default function HotelDetailPage() {
                       const b = autoBuilding(room, hotel?.buildings);
                       return { ...f, room_no: room, building: b };
                     });
+                    if (errors.room_no && room.trim()) setErrors((er) => ({ ...er, room_no: undefined }));
                   }}
                   placeholder="如 51888（按后台楼栋前缀自动识别）"
-                  className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 outline-none transition-colors focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20"
+                  className={cn(
+                    'w-full rounded-lg border bg-slate-950/50 px-3 py-2.5 text-base outline-none transition-colors md:py-2 md:text-sm',
+                    errors.room_no
+                      ? 'border-rose-500/60 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                      : 'border-slate-700/70 focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20',
+                    'text-slate-200 placeholder:text-slate-600'
+                  )}
                 />
               </Field>
 
@@ -602,11 +631,20 @@ export default function HotelDetailPage() {
                 </select>
               </Field>
 
-              <Field label="故障类别" required>
+              <Field label="故障类别" required error={errors.category}>
                 <select
                   value={form.category}
-                  onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 outline-none transition-colors focus:border-blue-500/60"
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, category: e.target.value }));
+                    if (errors.category && e.target.value) setErrors((er) => ({ ...er, category: undefined }));
+                  }}
+                  className={cn(
+                    'w-full rounded-lg border bg-slate-950/50 px-3 py-2.5 text-base outline-none transition-colors md:py-2 md:text-sm',
+                    errors.category
+                      ? 'border-rose-500/60 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                      : 'border-slate-700/70 focus:border-blue-500/60',
+                    'text-slate-200'
+                  )}
                 >
                   {categories.map((c) => (
                     <option key={c} value={c}>
@@ -616,11 +654,20 @@ export default function HotelDetailPage() {
                 </select>
               </Field>
 
-              <Field label="设备类型" required>
+              <Field label="设备类型" required error={errors.device_type}>
                 <select
                   value={form.device_type}
-                  onChange={(e) => setForm((f) => ({ ...f, device_type: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 outline-none transition-colors focus:border-blue-500/60"
+                  onChange={(e) => {
+                    setForm((f) => ({ ...f, device_type: e.target.value }));
+                    if (errors.device_type && e.target.value) setErrors((er) => ({ ...er, device_type: undefined }));
+                  }}
+                  className={cn(
+                    'w-full rounded-lg border bg-slate-950/50 px-3 py-2.5 text-base outline-none transition-colors md:py-2 md:text-sm',
+                    errors.device_type
+                      ? 'border-rose-500/60 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20'
+                      : 'border-slate-700/70 focus:border-blue-500/60',
+                    'text-slate-200'
+                  )}
                 >
                   {deviceTypes.map((d) => (
                     <option key={d} value={d}>
@@ -636,7 +683,7 @@ export default function HotelDetailPage() {
                   onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                   rows={3}
                   placeholder="请输入内容"
-                  className="w-full resize-none rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 outline-none transition-colors focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20"
+                  className="w-full resize-none rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2.5 text-base text-slate-200 placeholder:text-slate-600 outline-none transition-colors focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20 md:py-2 md:text-sm"
                 />
               </Field>
 
@@ -866,11 +913,13 @@ function Field({
   label,
   required,
   auto,
+  error,
   children,
 }: {
   label: string;
   required?: boolean;
   auto?: boolean;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -881,6 +930,7 @@ function Field({
         {auto && <span className="text-[10px] text-slate-600">自动</span>}
       </div>
       {children}
+      {error && <p className="mt-1 text-xs text-rose-400">{error}</p>}
     </div>
   );
 }
