@@ -560,24 +560,30 @@ export default function HotelDetailPage() {
               <Field label="房间号码" required>
                 <input
                   value={form.room_no}
-                  onChange={(e) => setForm((f) => ({ ...f, room_no: e.target.value }))}
-                  placeholder="请输入内容"
+                  onChange={(e) => {
+                    const room = e.target.value;
+                    setForm((f) => {
+                      // 根据房间号首位数字自动匹配楼栋（如 5xxx → 5号楼）
+                      let building = hotel?.buildings?.[0] || '';
+                      const m = room.trim().match(/^(\d)/);
+                      if (m && hotel?.buildings) {
+                        const hit = hotel.buildings.find(
+                          (b) => b.includes(`${m[1]}号楼`) || b.startsWith(m[1])
+                        );
+                        if (hit) building = hit;
+                      }
+                      return { ...f, room_no: room, building };
+                    });
+                  }}
+                  placeholder="如 51888（首位数字自动匹配楼栋）"
                   className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 outline-none transition-colors focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20"
                 />
               </Field>
 
-              <Field label="酒店楼栋">
-                <select
-                  value={form.building}
-                  onChange={(e) => setForm((f) => ({ ...f, building: e.target.value }))}
-                  className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 outline-none transition-colors focus:border-blue-500/60"
-                >
-                  {buildings.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
-                </select>
+              <Field label="酒店楼栋" auto>
+                <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-sm text-slate-300">
+                  {form.building || '输入房间号后自动识别'}
+                </div>
               </Field>
 
               <Field label="处理状态" required>
