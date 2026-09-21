@@ -76,12 +76,17 @@ function autoBuilding(room: string, buildings?: string[]): string {
   const n = m[1];
   const parsed = buildings.map((line) => {
     const parts = String(line).split('=').map((s) => s.trim());
-    const name = parts[0] || line;
-    let prefix = parts[1] ?? '';
-    // 未显式配置前缀时，楼栋名首位数字自动作为前缀（如 2棕榈酒店 -> 前缀 2）
-    if (!prefix) {
-      const m = name.match(/^(\d)/);
-      if (m) prefix = m[1];
+    let prefix = '';
+    let name = line;
+    if (parts.length === 2) {
+      // 格式：编号=名称
+      prefix = parts[0];
+      name = parts[1];
+    } else {
+      // 旧格式：纯名称，首位数字自动作前缀
+      const m = line.match(/^(\d)/);
+      prefix = m ? m[1] : '';
+      name = line;
     }
     return { name, prefix };
   });

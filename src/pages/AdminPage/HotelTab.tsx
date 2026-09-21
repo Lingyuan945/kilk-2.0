@@ -39,6 +39,18 @@ function fmt(s?: string | null) {
 // 数组 <-> 每行一个的文本
 const toLines = (arr: string[]) => (Array.isArray(arr) ? arr.join('\n') : '');
 const fromLines = (v: string) => v.split('\n').map((x) => x.trim()).filter(Boolean);
+// 楼栋配置解析：支持 "编号=名称" 或 "1椰林酒店"(数字开头自动编号)
+const parseBuildings = (arr: string[]): Array<{ id: string; name: string }> =>
+  (Array.isArray(arr) ? arr : [])
+    .map((line) => {
+      const s = String(line || '').trim();
+      if (!s) return { id: '', name: '' };
+      const eq = s.split('=');
+      if (eq.length === 2) return { id: eq[0].trim(), name: eq[1].trim() };
+      const m = s.match(/^(\d+)\s*(.+)$/);
+      if (m) return { id: m[1], name: m[2].trim() };
+      return { id: '', name: s };
+    });
 
 export default function HotelTab() {
   const [hotels, setHotels] = useState<Hotel[]>([]);
@@ -51,7 +63,7 @@ export default function HotelTab() {
     name: '',
     code: '',
     theme_color: THEME_COLORS[0],
-    buildings: '',
+    buildings: [] as Array<{ id: string; name: string }>,
     categories: '',
     device_types: '',
     enabled: true,
@@ -85,7 +97,7 @@ export default function HotelTab() {
       name: '',
       code: '',
       theme_color: THEME_COLORS[0],
-      buildings: '',
+      buildings: [],
       categories: '',
       device_types: '',
       enabled: true,
@@ -103,7 +115,7 @@ export default function HotelTab() {
       name: h.name,
       code: h.code,
       theme_color: h.theme_color,
-      buildings: toLines(h.buildings),
+      buildings: parseBuildings(h.buildings),
       categories: toLines(h.categories),
       device_types: toLines(h.device_types),
       enabled: h.enabled === 1,
@@ -117,7 +129,7 @@ export default function HotelTab() {
 
   const handleSubmit = async () => {
     if (!form.name.trim()) return flash('酒店名称必填', 'err');
-    if (!fromLines(form.buildings).length) return flash('请至少填写一个楼栋', 'err');
+    if (!form.buildings.some((r) => r.name.trim())) return flash('请至少填写一个楼栋名称', 'err');
     if (!fromLines(form.categories).length) return flash('请至少填写一个故障类别', 'err');
     if (!fromLines(form.device_types).length) return flash('请至少填写一个设备类型', 'err');
     setSaving(true);
@@ -126,7 +138,7 @@ export default function HotelTab() {
         name: form.name,
         code: form.code,
         theme_color: form.theme_color,
-        buildings: fromLines(form.buildings),
+        buildings: form.buildings.filter((r) => r.name.trim()).map((r) => `${r.id.trim()}=${r.name.trim()}`),
         categories: fromLines(form.categories),
         device_types: fromLines(form.device_types),
         enabled: form.enabled,
@@ -290,13 +302,53 @@ export default function HotelTab() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-400">楼栋配置 *（每行一个，可选 楼栋名=房间号前缀，如 别墅区=8）</Label>
-              <Textarea
-                value={form.buildings}
-                onChange={(e) => setForm((f) => ({ ...f, buildings: e.target.value }))}
-                rows={6}
-                placeholder={'1号楼=1\n2号楼=2\n别墅区=8\n其他'}
-              />
+              <Label className="text-xs text-slate-400">楼栋配置 *（编号即房间号前缀）</Label>
+              <div className="space-y-2">
+                {form.buildings.map((row, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input
+                      value={row.id}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          buildings: f.buildings.map((r, i) => (i === idx ? { ...r, id: e.target.value } : r)),
+                        }))
+                      }
+                      placeholder="编号"
+                      className="w-20 shrink-0"
+                    />
+                    <Input
+                      value={row.name}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          buildings: f.buildings.map((r, i) => (i === idx ? { ...r, name: e.target.value } : r)),
+                        }))
+                      }
+                      placeholder="楼栋名称"
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setForm((f) => ({ ...f, buildings: f.buildings.filter((_, i) => i !== idx) }))
+                      }
+                      className="shrink-0 rounded-lg border border-rose-500/25 bg-rose-500/5 px-2 py-1.5 text-xs text-rose-300/80 transition-all hover:bg-rose-500/20"
+                    >
+                      删除
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setForm((f) => ({ ...f, buildings: [...f.buildings, { id: '', name: '' }] }))
+                  }
+                  className="w-full rounded-lg border border-dashed border-slate-700 py-2 text-xs text-slate-400 transition-all hover:border-cyan-500/50 hover:text-cyan-300"
+                >
+                  + 添加楼栋
+                </button>
+              </div>
             </div>
             <div className="space-y-1.5">
               <Label className="text-xs text-slate-400">故障类别 *（每行一个）</Label>
