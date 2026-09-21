@@ -31,7 +31,7 @@ const imageUpload = multer({
 });
 
 // POST /api/hotel/upload - 故障附件上传
-router.post('/upload', imageUpload.single('image'), (req, res) => {
+router.post('/hotel/upload', imageUpload.single('image'), (req, res) => {
   if (!req.file) return res.status(400).json({ ok: false, msg: '未收到图片文件' });
   res.json({ ok: true, url: `/upload/${req.file.filename}` });
 });
