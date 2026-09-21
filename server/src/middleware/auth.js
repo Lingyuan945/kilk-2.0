@@ -50,3 +50,11 @@ export function adminRequired(req, res, next) {
   }
   next();
 }
+
+// 高级用户权限检查（senior / admin / super）
+export function seniorRequired(req, res, next) {
+  if (!req.user || !['senior', 'admin', 'super'].includes(req.user.role)) {
+    return res.status(403).json({ ok: false, msg: '权限不足，需要高级用户权限' });
+  }
+  next();
+}

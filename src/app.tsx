@@ -18,7 +18,21 @@ const HotelPage = lazy(() => import('@/pages/HotelPage/HotelPage'));
 const HotelDetailPage = lazy(() => import('@/pages/HotelPage/HotelDetailPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
-// 管理员路由守卫：非管理员跳转首页
+// 高级用户路由守卫：非高级用户跳转首页（酒店运维）
+function SeniorRoute({ children }: { children: React.ReactNode }) {
+  const { user, isSenior, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="flex min-h-[55vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-400" />
+      </div>
+    );
+  }
+  if (!user || !isSenior) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
+
+// 管理员路由守卫：非管理员跳转首页（后台管理）
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { user, isAdmin, loading } = useAuth();
   if (loading) {
@@ -50,8 +64,8 @@ export default function App() {
       <Routes>
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
-          <Route path="hotel" element={<AdminRoute><HotelPage /></AdminRoute>} />
-          <Route path="hotel/:hotelId" element={<AdminRoute><HotelDetailPage /></AdminRoute>} />
+          <Route path="hotel" element={<SeniorRoute><HotelPage /></SeniorRoute>} />
+          <Route path="hotel/:hotelId" element={<SeniorRoute><HotelDetailPage /></SeniorRoute>} />
           <Route path="notice" element={<NoticePage />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="about" element={<AboutPage />} />

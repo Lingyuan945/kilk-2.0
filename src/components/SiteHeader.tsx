@@ -48,7 +48,7 @@ function isActivePath(pathname: string, path: string): boolean {
 export default function SiteHeader() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isSenior } = useAuth();
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'login' | 'register'>('login');
 
@@ -61,11 +61,11 @@ export default function SiteHeader() {
   const showDevNav = isActivePath(pathname, '/about-ling');
   const visibleNav = useMemo(() => {
     let items = [...NAV_ITEMS_BASE];
-    // 酒店运维仅管理员可见
-    if (isAdmin) items = [items[0], HOTEL_NAV_ITEM, ...items.slice(1)];
+    // 酒店运维高级用户及以上可见
+    if (isSenior) items = [items[0], HOTEL_NAV_ITEM, ...items.slice(1)];
     if (showDevNav) items = [...items, DEV_NAV_ITEM];
     return items;
-  }, [showDevNav, isAdmin]);
+  }, [showDevNav, isSenior]);
 
   const updateIndicator = useCallback(() => {
     const activeItem = visibleNav.find((item) => isActivePath(pathname, item.path));
