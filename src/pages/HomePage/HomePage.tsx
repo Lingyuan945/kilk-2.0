@@ -81,7 +81,7 @@ export default function HomePage() {
           <span className="h-4 w-1 rounded-full bg-gradient-to-b from-blue-400 to-cyan-400" />
           常用入口
         </h2>
-        <div className="grid grid-cols-2 gap-2 md:grid-cols-3 md:gap-4">
+        <div className="grid grid-cols-3 gap-1.5 md:gap-4">
           <div className="animate-fade-in-up stagger-delay-1">
             <Link to="/hotel" className="group block h-full">
               <Card className="glass-card glass-card-hover h-full hover-lift">
