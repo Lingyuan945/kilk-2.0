@@ -65,6 +65,26 @@ function formatDuration(min?: number | null) {
   return m ? `${h} 小时 ${m} 分` : `${h} 小时`;
 }
 
+
+// 楼栋自动识别：支持后台每行 "楼栋名=前缀" 配置（如 别墅区=8）
+// 匹配规则：前缀精确匹配 > 名称含 "n号楼" > 默认第一栋
+function autoBuilding(room: string, buildings?: string[]): string {
+  if (!buildings || !buildings.length) return '';
+  const first = buildings[0] || '';
+  const m = room.trim().match(/^(\d)/);
+  if (!m) return first;
+  const n = m[1];
+  const parsed = buildings.map((line) => {
+    const parts = String(line).split('=').map((s) => s.trim());
+    return { name: parts[0] || line, prefix: parts[1] ?? '' };
+  });
+  const hitPrefix = parsed.find((p) => p.prefix === n);
+  if (hitPrefix) return hitPrefix.name;
+  const hitName = parsed.find((p) => p.name.includes(`${n}号楼`));
+  if (hitName) return hitName.name;
+  return first;
+}
+
 export default function HotelDetailPage() {
   const { hotelId } = useParams<{ hotelId: string }>();
   const { user, isAdmin } = useAuth();
@@ -563,19 +583,11 @@ export default function HotelDetailPage() {
                   onChange={(e) => {
                     const room = e.target.value;
                     setForm((f) => {
-                      // 根据房间号首位数字自动匹配楼栋（如 5xxx → 5号楼）
-                      let building = hotel?.buildings?.[0] || '';
-                      const m = room.trim().match(/^(\d)/);
-                      if (m && hotel?.buildings) {
-                        const hit = hotel.buildings.find(
-                          (b) => b.includes(`${m[1]}号楼`) || b.startsWith(m[1])
-                        );
-                        if (hit) building = hit;
-                      }
-                      return { ...f, room_no: room, building };
+                      const b = autoBuilding(room, hotel?.buildings);
+                      return { ...f, room_no: room, building: b };
                     });
                   }}
-                  placeholder="如 51888（首位数字自动匹配楼栋）"
+                  placeholder="如 51888（按后台楼栋前缀自动识别）"
                   className="w-full rounded-lg border border-slate-700/70 bg-slate-950/50 px-3 py-2 text-sm text-slate-200 placeholder:text-slate-600 outline-none transition-colors focus:border-blue-500/60 focus:ring-2 focus:ring-blue-500/20"
                 />
               </Field>

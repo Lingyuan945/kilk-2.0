@@ -290,12 +290,12 @@ export default function HotelTab() {
 
           <div className="mt-4 grid gap-4 md:grid-cols-3">
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-400">楼栋配置 *（每行一个）</Label>
+              <Label className="text-xs text-slate-400">楼栋配置 *（每行一个，可选 楼栋名=房间号前缀，如 别墅区=8）</Label>
               <Textarea
                 value={form.buildings}
                 onChange={(e) => setForm((f) => ({ ...f, buildings: e.target.value }))}
                 rows={6}
-                placeholder={'1号楼\n2号楼\n别墅区'}
+                placeholder={'1号楼=1\n2号楼=2\n别墅区=8\n其他'}
               />
             </div>
             <div className="space-y-1.5">
