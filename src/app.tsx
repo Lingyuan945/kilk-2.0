@@ -14,6 +14,7 @@ const LingPage = lazy(() => import('@/pages/LingPage/LingPage'));
 const DevelopersListPage = lazy(() => import('@/pages/DevelopersListPage/DevelopersListPage'));
 const DeveloperCardManagePage = lazy(() => import('@/pages/DeveloperCardManagePage/DeveloperCardManagePage'));
 const HotelPage = lazy(() => import('@/pages/HotelPage/HotelPage'));
+const HotelDetailPage = lazy(() => import('@/pages/HotelPage/HotelDetailPage'));
 const NotFoundPage = lazy(() => import('@/pages/NotFoundPage/NotFoundPage'));
 
 /** 页面加载中的过渡占位 */
@@ -35,6 +36,7 @@ export default function App() {
         <Route element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="hotel" element={<HotelPage />} />
+          <Route path="hotel/:hotelId" element={<HotelDetailPage />} />
           <Route path="notice" element={<NoticePage />} />
           <Route path="service" element={<ServicePage />} />
           <Route path="about" element={<AboutPage />} />

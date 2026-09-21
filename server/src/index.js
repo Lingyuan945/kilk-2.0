@@ -35,7 +35,7 @@ app.use('/api/home', homeRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/ling', lingRoutes);
 app.use('/api/developers', developerRoutes);
-app.use('/api/hotel', hotelRoutes);
+app.use('/api', hotelRoutes);
 app.use('/api/notice', noticeRoutes);
 
 // 404

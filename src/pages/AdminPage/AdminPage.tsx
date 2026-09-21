@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X, Search, Megaphone } from 'lucide-react';
+import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X, Search, Megaphone, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { apiGet, apiDelete, apiPut, apiPost, apiUpload } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DevelopersTab from '@/pages/AdminPage/DevelopersTab';
 import ServiceTab from '@/pages/AdminPage/ServiceTab';
 import NoticeTab from '@/pages/AdminPage/NoticeTab';
+import HotelTab from '@/pages/AdminPage/HotelTab';
 import {
   Select,
   SelectContent,
@@ -79,6 +80,7 @@ interface AdminReply {
 const ADMIN_TABS = [
   { value: 'home', label: '首页', fullLabel: '首页管理', icon: Home },
   { value: 'notice', label: '公告', fullLabel: '公告管理', icon: Megaphone },
+  { value: 'hotel', label: '酒店', fullLabel: '酒店管理', icon: Building2 },
   { value: 'services', label: '服务', fullLabel: '服务支持', icon: FileText },
   { value: 'ling', label: '开发者', fullLabel: '开发者管理', icon: IdCard },
   { value: 'users', label: '用户', fullLabel: '用户管理', icon: Users },
@@ -702,6 +704,11 @@ export default function AdminPage() {
 
           {/* 帖子管理 */}          <TabsContent value="notice">
             <NoticeTab />
+          </TabsContent>
+
+          {/* 酒店管理 */}
+          <TabsContent value="hotel">
+            <HotelTab />
           </TabsContent>
 
 

@@ -36,7 +36,179 @@ router.post('/upload', imageUpload.single('image'), (req, res) => {
   res.json({ ok: true, url: `/upload/${req.file.filename}` });
 });
 
-// ========== 故障记录 ==========
+// ========== 酒店管理 ==========
+
+// 辅助：解析 JSON 配置数组（兼容字符串/数组）
+function parseArr(v) {
+  if (Array.isArray(v)) return v.filter((x) => String(x).trim()).map((x) => String(x).trim());
+  if (typeof v === 'string') return v.split(/[\n,]/).map((x) => x.trim()).filter(Boolean);
+  return [];
+}
+
+// GET /api/hotels - 启用酒店列表（含每酒店故障统计），运维中心用
+router.get('/hotels', async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT h.id, h.name, h.code, h.theme_color, h.buildings, h.categories, h.device_types,
+              h.enabled, h.sort,
+              COALESCE(i.pending, 0) AS pending,
+              COALESCE(i.processing, 0) AS processing,
+              COALESCE(i.done, 0) AS done,
+              COALESCE(i.total, 0) AS total
+       FROM hotels h
+       LEFT JOIN (
+         SELECT hotel_id,
+                COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+                COUNT(*) FILTER (WHERE status = 'processing') AS processing,
+                COUNT(*) FILTER (WHERE status = 'done') AS done,
+                COUNT(*) AS total
+         FROM hotel_incident GROUP BY hotel_id
+       ) i ON i.hotel_id = h.id
+       WHERE h.enabled = 1
+       ORDER BY h.sort ASC, h.id ASC`
+    );
+    res.json({ ok: true, data: rows });
+  } catch (err) {
+    console.error('[Hotel] 获取酒店列表错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// GET /api/hotels/all - 全部酒店（含停用，后台管理用）
+router.get('/hotels/all', authRequired, adminRequired, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT h.id, h.name, h.code, h.theme_color, h.buildings, h.categories, h.device_types,
+              h.enabled, h.sort, h.created_at,
+              COALESCE(i.pending, 0) AS pending,
+              COALESCE(i.processing, 0) AS processing,
+              COALESCE(i.done, 0) AS done,
+              COALESCE(i.total, 0) AS total
+       FROM hotels h
+       LEFT JOIN (
+         SELECT hotel_id,
+                COUNT(*) FILTER (WHERE status = 'pending') AS pending,
+                COUNT(*) FILTER (WHERE status = 'processing') AS processing,
+                COUNT(*) FILTER (WHERE status = 'done') AS done,
+                COUNT(*) AS total
+         FROM hotel_incident GROUP BY hotel_id
+       ) i ON i.hotel_id = h.id
+       ORDER BY h.sort ASC, h.id ASC`
+    );
+    res.json({ ok: true, data: rows });
+  } catch (err) {
+    console.error('[Hotel] 获取全部酒店错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// GET /api/hotels/:id - 单个酒店（启用状态，运维页用）
+router.get('/hotels/:id', async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT id, name, code, theme_color, buildings, categories, device_types, enabled, sort
+       FROM hotels WHERE id = $1 AND enabled = 1`,
+      [req.params.id]
+    );
+    if (rows.length === 0) return res.status(404).json({ ok: false, msg: '酒店不存在或已停用' });
+    res.json({ ok: true, data: rows[0] });
+  } catch (err) {
+    console.error('[Hotel] 获取酒店错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// POST /api/hotels - 新增酒店（管理员）
+router.post('/hotels', authRequired, adminRequired, async (req, res) => {
+  try {
+    const { name, code, theme_color, buildings, categories, device_types, enabled, sort } = req.body;
+    if (!name || !String(name).trim()) return res.status(400).json({ ok: false, msg: '酒店名称必填' });
+    const { rows } = await db.query(
+      `INSERT INTO hotels (name, code, theme_color, buildings, categories, device_types, enabled, sort)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7, $8)
+       RETURNING *`,
+      [
+        String(name).trim(),
+        String(code || '').trim(),
+        /^#[0-9a-fA-F]{6}$/.test(String(theme_color || '')) ? String(theme_color) : '#3b82f6',
+        JSON.stringify(parseArr(buildings)),
+        JSON.stringify(parseArr(categories)),
+        JSON.stringify(parseArr(device_types)),
+        enabled === 0 || enabled === false ? 0 : 1,
+        Number(sort) || 0,
+      ]
+    );
+    res.json({ ok: true, data: rows[0] });
+  } catch (err) {
+    console.error('[Hotel] 新增酒店错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// PUT /api/hotels/:id - 更新酒店（管理员）
+router.put('/hotels/:id', authRequired, adminRequired, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, code, theme_color, buildings, categories, device_types, enabled, sort } = req.body;
+    const { rows: cur } = await db.query('SELECT * FROM hotels WHERE id = $1', [id]);
+    if (cur.length === 0) return res.status(404).json({ ok: false, msg: '酒店不存在' });
+    const { rows } = await db.query(
+      `UPDATE hotels SET
+         name = COALESCE($1, name),
+         code = COALESCE($2, code),
+         theme_color = CASE WHEN $3::text IS NULL THEN theme_color ELSE $3::text END,
+         buildings = CASE WHEN $4::jsonb IS NULL THEN buildings ELSE $4::jsonb END,
+         categories = CASE WHEN $5::jsonb IS NULL THEN categories ELSE $5::jsonb END,
+         device_types = CASE WHEN $6::jsonb IS NULL THEN device_types ELSE $6::jsonb END,
+         enabled = COALESCE($7, enabled),
+         sort = COALESCE($8, sort),
+         updated_at = NOW()
+       WHERE id = $9 RETURNING *`,
+      [
+        name !== undefined && name !== null ? String(name).trim() : null,
+        code !== undefined && code !== null ? String(code).trim() : null,
+        /^#[0-9a-fA-F]{6}$/.test(String(theme_color || '')) ? String(theme_color) : null,
+        buildings !== undefined && buildings !== null ? JSON.stringify(parseArr(buildings)) : null,
+        categories !== undefined && categories !== null ? JSON.stringify(parseArr(categories)) : null,
+        device_types !== undefined && device_types !== null ? JSON.stringify(parseArr(device_types)) : null,
+        enabled !== undefined && enabled !== null ? (enabled === 0 || enabled === false ? 0 : 1) : null,
+        sort !== undefined && sort !== null ? Number(sort) : null,
+        id,
+      ]
+    );
+    res.json({ ok: true, data: rows[0] });
+  } catch (err) {
+    console.error('[Hotel] 更新酒店错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// DELETE /api/hotels/:id - 删除酒店（管理员，级联删除其故障记录与附件）
+router.delete('/hotels/:id', authRequired, adminRequired, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rows: atts } = await db.query(
+      'SELECT attachment FROM hotel_incident WHERE hotel_id = $1 AND attachment <> \'\'',
+      [id]
+    );
+    await db.query('DELETE FROM hotel_incident WHERE hotel_id = $1', [id]);
+    const { rows } = await db.query('DELETE FROM hotels WHERE id = $1 RETURNING id', [id]);
+    if (rows.length === 0) return res.status(404).json({ ok: false, msg: '酒店不存在' });
+    for (const a of atts) {
+      const att = a.attachment;
+      if (att && att.startsWith('/upload/') && !att.includes('..')) {
+        const fullPath = path.join(UPLOAD_DIR, path.basename(att));
+        if (fs.existsSync(fullPath)) fs.unlinkSync(fullPath);
+      }
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[Hotel] 删除酒店错误:', err);
+    res.status(500).json({ ok: false, msg: '服务器错误' });
+  }
+});
+
+// ========== 故障记录（按酒店隔离）==========
 
 // 生成故障编号：GZ20260921-001
 async function nextIncidentNo() {
@@ -47,23 +219,33 @@ async function nextIncidentNo() {
   return `${prefix}${String(Number(rows[0]?.c ?? 0) + 1).padStart(3, '0')}`;
 }
 
-// GET /api/hotel/incidents - 列表（关键词搜索 + 状态筛选）+ 统计
-router.get('/incidents', async (req, res) => {
+// 校验酒店存在且启用
+async function hotelExists(hotelId) {
+  const { rows } = await db.query('SELECT id FROM hotels WHERE id = $1 AND enabled = 1', [hotelId]);
+  return rows.length > 0;
+}
+
+// GET /api/hotel/:hotelId/incidents - 列表（关键词搜索 + 状态筛选）+ 统计
+router.get('/hotel/:hotelId/incidents', async (req, res) => {
   try {
+    const hotelId = Number(req.params.hotelId);
+    if (!hotelId || !(await hotelExists(hotelId))) {
+      return res.status(404).json({ ok: false, msg: '酒店不存在或已停用' });
+    }
     const { keyword, status } = req.query;
-    const params = [];
-    let where = '';
+    const params = [hotelId];
+    let where = 'WHERE hotel_id = $1';
     if (keyword && String(keyword).trim()) {
       params.push(`%${String(keyword).trim()}%`);
-      where = `WHERE (room_no ILIKE $1 OR incident_no ILIKE $1 OR description ILIKE $1 OR building ILIKE $1 OR device_type ILIKE $1)`;
+      where += ` AND (room_no ILIKE $${params.length} OR incident_no ILIKE $${params.length} OR description ILIKE $${params.length} OR building ILIKE $${params.length} OR device_type ILIKE $${params.length})`;
     }
     if (status && ['pending', 'processing', 'done'].includes(String(status))) {
       params.push(String(status));
-      where += `${where ? ' AND' : 'WHERE'} status = $${params.length}`;
+      where += ` AND status = $${params.length}`;
     }
 
     const { rows } = await db.query(
-      `SELECT id, incident_no, room_no, building, status, category, device_type, description,
+      `SELECT id, incident_no, hotel_id, room_no, building, status, category, device_type, description,
               attachment, wait_duration, total_duration, created_by, created_by_name,
               created_at, updated_at, repaired_at
        FROM hotel_incident ${where}
@@ -76,7 +258,8 @@ router.get('/incidents', async (req, res) => {
               COUNT(*) FILTER (WHERE status = 'processing') AS processing,
               COUNT(*) FILTER (WHERE status = 'done') AS done,
               COUNT(*) AS total
-       FROM hotel_incident`
+       FROM hotel_incident WHERE hotel_id = $1`,
+      [hotelId]
     );
 
     res.json({ ok: true, data: rows, stats: stats[0] });
@@ -86,9 +269,13 @@ router.get('/incidents', async (req, res) => {
   }
 });
 
-// POST /api/hotel/incidents - 登记故障
-router.post('/incidents', authOptional, async (req, res) => {
+// POST /api/hotel/:hotelId/incidents - 登记故障
+router.post('/hotel/:hotelId/incidents', authOptional, async (req, res) => {
   try {
+    const hotelId = Number(req.params.hotelId);
+    if (!hotelId || !(await hotelExists(hotelId))) {
+      return res.status(404).json({ ok: false, msg: '酒店不存在或已停用' });
+    }
     const { room_no, building, status, category, device_type, description, attachment } = req.body;
     if (!room_no || !String(room_no).trim()) {
       return res.status(400).json({ ok: false, msg: '房间号码必填' });
@@ -104,11 +291,12 @@ router.post('/incidents', authOptional, async (req, res) => {
 
     const { rows } = await db.query(
       `INSERT INTO hotel_incident
-        (incident_no, room_no, building, status, category, device_type, description, attachment, created_by, created_by_name)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        (incident_no, hotel_id, room_no, building, status, category, device_type, description, attachment, created_by, created_by_name)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         incident_no,
+        hotelId,
         String(room_no).trim(),
         String(building || '').trim(),
         status || 'pending',
@@ -127,12 +315,15 @@ router.post('/incidents', authOptional, async (req, res) => {
   }
 });
 
-// PUT /api/hotel/incidents/:id - 更新状态/内容（需登录）
-router.put('/incidents/:id', authRequired, async (req, res) => {
-  const { id } = req.params;
+// PUT /api/hotel/:hotelId/incidents/:id - 更新状态/内容（需登录）
+router.put('/hotel/:hotelId/incidents/:id', authRequired, async (req, res) => {
+  const { hotelId, id } = req.params;
   const { status, description, category, device_type, building } = req.body;
   try {
-    const { rows: cur } = await db.query('SELECT * FROM hotel_incident WHERE id = $1', [id]);
+    const { rows: cur } = await db.query(
+      'SELECT * FROM hotel_incident WHERE id = $1 AND hotel_id = $2',
+      [id, hotelId]
+    );
     if (cur.length === 0) return res.status(404).json({ ok: false, msg: '记录不存在' });
 
     const now = new Date();
@@ -160,7 +351,7 @@ router.put('/incidents/:id', authRequired, async (req, res) => {
            total_duration = $7,
            repaired_at = COALESCE($8, repaired_at),
            updated_at = NOW()
-       WHERE id = $9
+       WHERE id = $9 AND hotel_id = $10
        RETURNING *`,
       [
         status || cur[0].status,
@@ -172,6 +363,7 @@ router.put('/incidents/:id', authRequired, async (req, res) => {
         total,
         repairedAt,
         id,
+        hotelId,
       ]
     );
     res.json({ ok: true, data: rows[0] });
@@ -181,10 +373,14 @@ router.put('/incidents/:id', authRequired, async (req, res) => {
   }
 });
 
-// DELETE /api/hotel/incidents/:id - 删除记录（管理员，同步清理附件）
-router.delete('/incidents/:id', authRequired, adminRequired, async (req, res) => {
+// DELETE /api/hotel/:hotelId/incidents/:id - 删除记录（管理员，同步清理附件）
+router.delete('/hotel/:hotelId/incidents/:id', authRequired, adminRequired, async (req, res) => {
   try {
-    const { rows } = await db.query('DELETE FROM hotel_incident WHERE id = $1 RETURNING id, attachment', [req.params.id]);
+    const { hotelId, id } = req.params;
+    const { rows } = await db.query(
+      'DELETE FROM hotel_incident WHERE id = $1 AND hotel_id = $2 RETURNING id, attachment',
+      [id, hotelId]
+    );
     if (rows.length === 0) return res.status(404).json({ ok: false, msg: '记录不存在' });
     const att = rows[0].attachment;
     if (att && att.startsWith('/upload/') && !att.includes('..')) {
