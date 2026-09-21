@@ -94,7 +94,7 @@ export default function HotelDetailPage() {
   });
 
   // 功能模块切换
-  const [module, setModule] = useState<'incident' | 'dashboard'>('incident');
+  const [module, setModule] = useState<'select' | 'incident' | 'dashboard'>('select');
 
   // 加载酒店配置
   useEffect(() => {
@@ -261,12 +261,21 @@ export default function HotelDetailPage() {
     <div className="mx-auto max-w-6xl px-4 pb-20 pt-8 md:px-8 md:pt-12">
       {/* 页头 */}
       <div className="mb-8 text-center">
-        <Link
-          to="/hotel"
-          className="mb-4 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-blue-400"
-        >
-          <ChevronLeft className="h-3.5 w-3.5" /> 返回运维中心
-        </Link>
+        {module === 'select' ? (
+          <Link
+            to="/hotel"
+            className="mb-4 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-blue-400"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> 返回运维中心
+          </Link>
+        ) : (
+          <button
+            onClick={() => setModule('select')}
+            className="mb-4 inline-flex items-center gap-1 text-xs text-slate-500 transition-colors hover:text-cyan-400"
+          >
+            <ChevronLeft className="h-3.5 w-3.5" /> 选择功能
+          </button>
+        )}
         <div
           className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-widest"
           style={{ borderColor: `${theme}44`, color: theme, backgroundColor: `${theme}10` }}
@@ -289,6 +298,8 @@ export default function HotelDetailPage() {
       </div>
 
       {/* 统计卡片 */}
+      {module !== 'select' && (
+      <>
       <div className="mb-8 grid grid-cols-2 gap-4 md:grid-cols-4">
         {statsCards.map((card) => {
           const Icon = card.icon;
@@ -309,6 +320,8 @@ export default function HotelDetailPage() {
           );
         })}
       </div>
+      </>
+      )}
 
       {msg && (
         <div
@@ -323,68 +336,60 @@ export default function HotelDetailPage() {
         </div>
       )}
 
-      {/* 功能模块入口 */}
-      <div className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-4">
+      {/* 功能模块选择页 */}
+      {module === 'select' && (
+      <div className="mx-auto mt-6 grid max-w-4xl grid-cols-1 gap-4 sm:grid-cols-2">
         <button
           onClick={() => setModule('incident')}
-          className={cn(
-            'group rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5',
-            module === 'incident'
-              ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_24px_hsl(189_94%_43%/0.2)]'
-              : 'border-slate-800 bg-slate-900/50 hover:border-slate-600',
-          )}
+          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:bg-slate-900/90 hover:shadow-[0_0_40px_hsl(189_94%_43%/0.15)]"
         >
-          <div className={cn(
-            'mb-2 flex h-9 w-9 items-center justify-center rounded-xl',
-            module === 'incident' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400 group-hover:text-cyan-300',
-          )}>
-            <Wrench className="h-4.5 w-4.5" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 transition-transform duration-300 group-hover:scale-110">
+            <Wrench className="h-6 w-6" />
           </div>
-          <div className="text-sm font-semibold text-slate-100">故障登记</div>
-          <div className="mt-0.5 text-xs text-slate-500">报障、处理与跟踪</div>
+          <div className="text-lg font-semibold text-slate-100">故障登记</div>
+          <div className="mt-1 text-sm text-slate-400">客房故障报障、处理与全程跟踪</div>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-400">
+            进入 <ChevronLeft className="h-4 w-4 rotate-180" />
+          </div>
         </button>
 
         <button
           onClick={() => setModule('dashboard')}
-          className={cn(
-            'group rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5',
-            module === 'dashboard'
-              ? 'border-cyan-400/50 bg-cyan-500/10 shadow-[0_0_24px_hsl(189_94%_43%/0.2)]'
-              : 'border-slate-800 bg-slate-900/50 hover:border-slate-600',
-          )}
+          className="group relative overflow-hidden rounded-3xl border border-slate-800 bg-slate-900/60 p-6 text-left transition-all duration-300 hover:-translate-y-1 hover:border-cyan-400/50 hover:bg-slate-900/90 hover:shadow-[0_0_40px_hsl(189_94%_43%/0.15)]"
         >
-          <div className={cn(
-            'mb-2 flex h-9 w-9 items-center justify-center rounded-xl',
-            module === 'dashboard' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-slate-800 text-slate-400 group-hover:text-cyan-300',
-          )}>
-            <BarChart3 className="h-4.5 w-4.5" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300 transition-transform duration-300 group-hover:scale-110">
+            <BarChart3 className="h-6 w-6" />
           </div>
-          <div className="text-sm font-semibold text-slate-100">运维看板</div>
-          <div className="mt-0.5 text-xs text-slate-500">趋势分布与效率统计</div>
+          <div className="text-lg font-semibold text-slate-100">运维看板</div>
+          <div className="mt-1 text-sm text-slate-400">故障趋势、类别分布与处理效率统计</div>
+          <div className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-cyan-400">
+            进入 <ChevronLeft className="h-4 w-4 rotate-180" />
+          </div>
         </button>
 
         <div
-          className="group cursor-not-allowed rounded-2xl border border-slate-800/60 bg-slate-900/30 p-4 opacity-60"
+          className="group relative cursor-not-allowed overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 p-6 opacity-50"
           title="即将上线"
         >
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-500">
-            <ClipboardList className="h-4.5 w-4.5" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
+            <ClipboardList className="h-6 w-6" />
           </div>
-          <div className="text-sm font-semibold text-slate-300">失物招领</div>
-          <div className="mt-0.5 text-xs text-slate-500">遗失登记与领取（即将上线）</div>
+          <div className="text-lg font-semibold text-slate-300">失物招领</div>
+          <div className="mt-1 text-sm text-slate-500">客人遗失物品登记与领取（即将上线）</div>
         </div>
 
         <div
-          className="group cursor-not-allowed rounded-2xl border border-slate-800/60 bg-slate-900/30 p-4 opacity-60"
+          className="group relative cursor-not-allowed overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 p-6 opacity-50"
           title="即将上线"
         >
-          <div className="mb-2 flex h-9 w-9 items-center justify-center rounded-xl bg-slate-800 text-slate-500">
-            <ScanLine className="h-4.5 w-4.5" />
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
+            <ScanLine className="h-6 w-6" />
           </div>
-          <div className="text-sm font-semibold text-slate-300">客房巡检</div>
-          <div className="mt-0.5 text-xs text-slate-500">巡检任务与记录（即将上线）</div>
+          <div className="text-lg font-semibold text-slate-300">客房巡检</div>
+          <div className="mt-1 text-sm text-slate-500">巡检任务与记录管理（即将上线）</div>
         </div>
       </div>
+      )}
 
       {module === 'incident' && (
       <>
