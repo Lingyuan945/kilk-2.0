@@ -101,3 +101,10 @@ server/db_dump.sql
 
 # 本地维护目录（验证截图/临时脚本/进度文件，不进仓库）
 maintenance/
+
+# 日志文件
+*.log
+
+# 上传目录（运行时生成）
+server/public/upload/
+upload/
