@@ -83,10 +83,10 @@ function autoBuilding(room: string, buildings?: string[]): string {
       prefix = parts[0];
       name = parts[1];
     } else {
-      // 旧格式：纯名称，首位数字自动作前缀
+      // 旧格式：如 "1椰林酒店"，首位数字自动作前缀，名称去掉编号前缀
       const m = line.match(/^(\d)/);
       prefix = m ? m[1] : '';
-      name = line;
+      name = line.replace(/^\d+\s*/, '').trim();
     }
     return { name, prefix };
   });
