@@ -76,7 +76,14 @@ function autoBuilding(room: string, buildings?: string[]): string {
   const n = m[1];
   const parsed = buildings.map((line) => {
     const parts = String(line).split('=').map((s) => s.trim());
-    return { name: parts[0] || line, prefix: parts[1] ?? '' };
+    const name = parts[0] || line;
+    let prefix = parts[1] ?? '';
+    // 未显式配置前缀时，楼栋名首位数字自动作为前缀（如 2棕榈酒店 -> 前缀 2）
+    if (!prefix) {
+      const m = name.match(/^(\d)/);
+      if (m) prefix = m[1];
+    }
+    return { name, prefix };
   });
   const hitPrefix = parsed.find((p) => p.prefix === n);
   if (hitPrefix) return hitPrefix.name;
