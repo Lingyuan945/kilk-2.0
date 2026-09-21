@@ -308,25 +308,14 @@ export default function HotelDetailPage() {
             <ChevronLeft className="h-3.5 w-3.5" /> 选择功能
           </button>
         )}
-        <div
-          className="mb-2 inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold tracking-widest"
-          style={{ borderColor: `${theme}44`, color: theme, backgroundColor: `${theme}10` }}
-        >
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-700/60 px-3 py-1 text-[11px] font-medium tracking-[0.2em] text-slate-500">
           <Building2 className="h-3.5 w-3.5" />
           HOTEL OPERATIONS
         </div>
-        <h1
-          className="text-3xl font-bold tracking-tight md:text-4xl"
-          style={{
-            backgroundImage: `linear-gradient(90deg, ${theme}, ${theme}cc, ${theme})`,
-            WebkitBackgroundClip: 'text',
-            backgroundClip: 'text',
-            color: 'transparent',
-          }}
-        >
+        <h1 className="text-3xl font-semibold tracking-tight text-slate-100 md:text-4xl">
           {hotel.name}
         </h1>
-        <p className="mt-2 text-sm text-slate-400">客房故障登记 · 跟踪处理 · 实时统计</p>
+        <p className="mt-3 text-sm text-slate-400">客房故障登记 · 跟踪处理 · 实时统计</p>
       </div>
 
       {/* 统计卡片 */}
