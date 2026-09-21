@@ -50,7 +50,7 @@ router.get('/hotels', async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT h.id, h.name, h.code, h.theme_color, h.buildings, h.categories, h.device_types,
-              h.enabled, h.sort,
+              h.enabled, h.sort, h.description, h.logo_url,
               COALESCE(i.pending, 0) AS pending,
               COALESCE(i.processing, 0) AS processing,
               COALESCE(i.done, 0) AS done,
@@ -79,7 +79,7 @@ router.get('/hotels/all', authRequired, adminRequired, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT h.id, h.name, h.code, h.theme_color, h.buildings, h.categories, h.device_types,
-              h.enabled, h.sort, h.created_at,
+              h.enabled, h.sort, h.created_at, h.description, h.logo_url,
               COALESCE(i.pending, 0) AS pending,
               COALESCE(i.processing, 0) AS processing,
               COALESCE(i.done, 0) AS done,
@@ -106,7 +106,7 @@ router.get('/hotels/all', authRequired, adminRequired, async (req, res) => {
 router.get('/hotels/:id', async (req, res) => {
   try {
     const { rows } = await db.query(
-      `SELECT id, name, code, theme_color, buildings, categories, device_types, enabled, sort
+      `SELECT id, name, code, theme_color, buildings, categories, device_types, enabled, sort, description, logo_url
        FROM hotels WHERE id = $1 AND enabled = 1`,
       [req.params.id]
     );
@@ -121,11 +121,11 @@ router.get('/hotels/:id', async (req, res) => {
 // POST /api/hotels - 新增酒店（管理员）
 router.post('/hotels', authRequired, adminRequired, async (req, res) => {
   try {
-    const { name, code, theme_color, buildings, categories, device_types, enabled, sort } = req.body;
+    const { name, code, theme_color, buildings, categories, device_types, enabled, sort, description, logo_url } = req.body;
     if (!name || !String(name).trim()) return res.status(400).json({ ok: false, msg: '酒店名称必填' });
     const { rows } = await db.query(
-      `INSERT INTO hotels (name, code, theme_color, buildings, categories, device_types, enabled, sort)
-       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7, $8)
+      `INSERT INTO hotels (name, code, theme_color, buildings, categories, device_types, enabled, sort, description, logo_url)
+       VALUES ($1, $2, $3, $4::jsonb, $5::jsonb, $6::jsonb, $7, $8, $9, $10)
        RETURNING *`,
       [
         String(name).trim(),
@@ -136,6 +136,8 @@ router.post('/hotels', authRequired, adminRequired, async (req, res) => {
         JSON.stringify(parseArr(device_types)),
         enabled === 0 || enabled === false ? 0 : 1,
         Number(sort) || 0,
+        String(description || '').slice(0, 500),
+        String(logo_url || '').slice(0, 500),
       ]
     );
     res.json({ ok: true, data: rows[0] });
@@ -149,7 +151,7 @@ router.post('/hotels', authRequired, adminRequired, async (req, res) => {
 router.put('/hotels/:id', authRequired, adminRequired, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, code, theme_color, buildings, categories, device_types, enabled, sort } = req.body;
+    const { name, code, theme_color, buildings, categories, device_types, enabled, sort, description, logo_url } = req.body;
     const { rows: cur } = await db.query('SELECT * FROM hotels WHERE id = $1', [id]);
     if (cur.length === 0) return res.status(404).json({ ok: false, msg: '酒店不存在' });
     const { rows } = await db.query(
@@ -162,8 +164,10 @@ router.put('/hotels/:id', authRequired, adminRequired, async (req, res) => {
          device_types = CASE WHEN $6::jsonb IS NULL THEN device_types ELSE $6::jsonb END,
          enabled = COALESCE($7, enabled),
          sort = COALESCE($8, sort),
+         description = COALESCE($9, description),
+         logo_url = COALESCE($10, logo_url),
          updated_at = NOW()
-       WHERE id = $9 RETURNING *`,
+       WHERE id = $11 RETURNING *`,
       [
         name !== undefined && name !== null ? String(name).trim() : null,
         code !== undefined && code !== null ? String(code).trim() : null,
@@ -173,6 +177,8 @@ router.put('/hotels/:id', authRequired, adminRequired, async (req, res) => {
         device_types !== undefined && device_types !== null ? JSON.stringify(parseArr(device_types)) : null,
         enabled !== undefined && enabled !== null ? (enabled === 0 || enabled === false ? 0 : 1) : null,
         sort !== undefined && sort !== null ? Number(sort) : null,
+        description !== undefined && description !== null ? String(description).slice(0, 500) : null,
+        logo_url !== undefined && logo_url !== null ? String(logo_url).slice(0, 500) : null,
         id,
       ]
     );

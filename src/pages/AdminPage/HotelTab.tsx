@@ -18,6 +18,8 @@ type Hotel = {
   device_types: string[];
   enabled: number;
   sort: number;
+  description: string;
+  logo_url: string;
   created_at: string;
   pending: number;
   processing: number;
@@ -54,6 +56,8 @@ export default function HotelTab() {
     device_types: '',
     enabled: true,
     sort: 0,
+    description: '',
+    logo_url: '',
   });
 
   const load = useCallback(async () => {
@@ -86,6 +90,8 @@ export default function HotelTab() {
       device_types: '',
       enabled: true,
       sort: 0,
+      description: '',
+      logo_url: '',
     });
     setEditingId(null);
     setShowForm(false);
@@ -102,6 +108,8 @@ export default function HotelTab() {
       device_types: toLines(h.device_types),
       enabled: h.enabled === 1,
       sort: h.sort,
+      description: h.description || '',
+      logo_url: h.logo_url || '',
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -123,6 +131,8 @@ export default function HotelTab() {
         device_types: fromLines(form.device_types),
         enabled: form.enabled,
         sort: Number(form.sort) || 0,
+        description: form.description,
+        logo_url: form.logo_url,
       };
       if (editingId) {
         await apiPut(`/hotels/${editingId}`, payload);
@@ -209,6 +219,26 @@ export default function HotelTab() {
                 value={form.code}
                 onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
                 placeholder="如：hongshulin（可选）"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-400">酒店简介（前台卡片展示，选填）</Label>
+              <Textarea
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                rows={2}
+                placeholder="如：位于景区核心，提供客房、餐饮与会议服务"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-400">封面图 URL（选填）</Label>
+              <Input
+                value={form.logo_url}
+                onChange={(e) => setForm((f) => ({ ...f, logo_url: e.target.value }))}
+                placeholder="https://…/cover.jpg"
               />
             </div>
           </div>

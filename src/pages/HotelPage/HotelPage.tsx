@@ -123,6 +123,9 @@ export default function HotelPage() {
                       <p className="text-xs text-slate-500">
                         {h.buildings.length} 个楼栋 · {h.categories.length} 类故障 · {h.device_types.length} 类设备
                       </p>
+                      {h.description && (
+                        <p className="mt-1 line-clamp-2 text-xs text-slate-400">{h.description}</p>
+                      )}
                     </div>
                   </div>
                   <span

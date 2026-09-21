@@ -165,10 +165,15 @@ export async function initDatabase() {
       device_types jsonb DEFAULT '[]',
       enabled integer DEFAULT 1,
       sort integer DEFAULT 0,
+      description varchar(500) DEFAULT '',
+      logo_url varchar(500) DEFAULT '',
       created_at timestamp DEFAULT NOW(),
       updated_at timestamp DEFAULT NOW()
     );
   `);
+  // 旧表补列
+  await db.exec(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS description varchar(500) DEFAULT ''`);
+  await db.exec(`ALTER TABLE hotels ADD COLUMN IF NOT EXISTS logo_url varchar(500) DEFAULT ''`);
 
   // 默认酒店种子：红树林酒店（保留原配置项）
   const { rows: hotelRows } = await db.query('SELECT COUNT(*) AS c FROM hotels');
