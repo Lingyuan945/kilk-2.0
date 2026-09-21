@@ -12,7 +12,7 @@
 kilk 2.0 是 Ling 开发的团队平台，线上地址 https://kilk.online。当前包含：
 
 - **首页**：平台介绍、常用入口（酒店运维 / 服务支持 / 平台公告）
-- **酒店运维**：多酒店运维中心（红树林酒店 id=1），含故障登记、运维看板，失物招领/客房巡检占位
+- **酒店运维**：多酒店运维中心（红树林酒店 id=1），含故障登记、运维看板（失物招领/客房巡检占位已删除）
 - **服务支持**：技术支持工单
 - **平台公告**：公告列表
 - **关于我们**：公司介绍 + 开发者团队入口（开发者页从导航隐藏，从此进入）
@@ -85,7 +85,7 @@ scp 到 `/tmp/` 后 `cp` 到 `/var/www/kilk2/src/` 对应位置，再 `sudo syst
 
 ### 5.2 前台页面
 - `/hotel`：运维中心，酒店卡片列表 + 统计
-- `/hotel/:hotelId`：功能选择页（故障登记 / 运维看板 / 失物招领 / 客房巡检）
+- `/hotel/:hotelId`：功能选择页（故障登记 / 运维看板；失物招领、客房巡检占位已于 2026-09-21 删除）
 - 故障登记：输入房间号自动识别楼栋（autoBuilding），只读显示
 - 运维看板：基于 incidents 纯前端统计
 
@@ -146,10 +146,10 @@ NAV_ITEMS 顺序：
 
 ## 九、当前待办 / 未完成
 
-1. **失物招领模块**：占位"即将上线"，未实装
-2. **客房巡检模块**：占位"即将上线"，未实装
+1. **失物招领模块**：✅ 已删除占位（2026-09-21）——功能选择页卡片移除，若后续实装再重建
+2. **客房巡检模块**：✅ 已删除占位（2026-09-21）——功能选择页卡片移除，若后续实装再重建
 3. **多酒店扩展**：hotels 表已支持，后台可新增，但前台仅红树林 id=1 在用
-4. **后台论坛残留**：AdminPage.tsx 旧论坛 state/函数未清理
+4. **后台论坛残留**：✅ 已清理（2026-09-21）——AdminPage.tsx 移除帖子/频道/评论管理全部 state、函数、弹窗、统计卡与死 import（AdminPost/AdminReply 接口、loadPosts/loadChannels/openAddChannel/openEditChannel/saveChannel/openEditPost/handlePostImageUpload/savePost/openManageReplies/deleteReply、频道/帖子/评论三个弹窗、帖子统计卡、MessageSquare/MessageCircle/Clock/ImagePlus/X/Eye/Search/useRef/apiUpload/formatBytes），统计卡 3 列改 2 列（用户/服务），副标题改"用户、服务管理"
 5. **酒店简介/封面图**：红树林目前为空，后台可填
 
 ---

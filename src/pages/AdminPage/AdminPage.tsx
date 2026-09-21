@@ -1,7 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
-import { Users, MessageSquare, MessageCircle, Trash2, Shield, Eye, Clock, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, ImagePlus, X, Search, Megaphone, Building2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Trash2, Shield, AlertTriangle, Home, Save, Loader2, Pencil, IdCard, FileText, Megaphone, Building2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { apiGet, apiDelete, apiPut, apiPost, apiUpload } from '@/lib/api';
+import { apiGet, apiDelete, apiPut, apiPost } from '@/lib/api';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,7 +42,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ROLE_NAMES, ROLE_COLORS, formatTime } from '@/hooks/useSiteData';
 import { cn } from '@/lib/utils';
-import { formatBytes } from '@/lib/format';
 
 interface AdminUser {
   id: string;
@@ -51,27 +50,6 @@ interface AdminUser {
   avatar: string;
   role: string;
   create_time: string;
-}
-
-interface AdminPost {
-  id: string;
-  title: string;
-  content: string;
-  username: string;
-  author_name: string;
-  channel_name: string;
-  view_count: string;
-  create_time: string;
-}
-
-interface AdminReply {
-  id: string;
-  content: string;
-  username: string;
-  author_name: string;
-  post_title: string;
-  post_id: string;
-  reply_time: string;
 }
 
 // ===== 后台功能模块配置 =====
@@ -102,10 +80,6 @@ export default function AdminPage() {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [usersLoading, setUsersLoading] = useState(true);
 
-  // 帖子管理
-  const [posts, setPosts] = useState<AdminPost[]>([]);
-  const [postsLoading, setPostsLoading] = useState(true);
-
   // 服务文件管理
   const [services, setServices] = useState<any[]>([]);
 
@@ -114,37 +88,6 @@ export default function AdminPage() {
   const [homeLoading, setHomeLoading] = useState(true);
   const [homeSaving, setHomeSaving] = useState(false);
   const [homeMsg, setHomeMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
-
-  // 频道管理
-  const [channels, setChannels] = useState<any[]>([]);
-  const [channelsLoading, setChannelsLoading] = useState(true);
-  const [channelModalOpen, setChannelModalOpen] = useState(false);
-  const [editingChannel, setEditingChannel] = useState<any>(null);
-  const [channelForm, setChannelForm] = useState({ name: '', description: '', moderator_id: '', sort: '' });
-  const [channelSaving, setChannelSaving] = useState(false);
-
-  // 论坛管理列表筛选与显示限制
-  const [channelKeyword, setChannelKeyword] = useState('');
-  const [visibleChannelCount, setVisibleChannelCount] = useState(8);
-  const [postKeyword, setPostKeyword] = useState('');
-  const [postChannelFilter, setPostChannelFilter] = useState('all');
-  const [postSort, setPostSort] = useState('newest');
-  const [visiblePostCount, setVisiblePostCount] = useState(8);
-
-  // 帖子编辑
-  const [postModalOpen, setPostModalOpen] = useState(false);
-  const [editingPost, setEditingPost] = useState<any>(null);
-  const [postForm, setPostForm] = useState({ title: '', content: '', channel_id: '', images: [] as string[] });
-  const [postImageUploading, setPostImageUploading] = useState(false);
-  const [postImageSizes, setPostImageSizes] = useState<Record<string, number>>({});
-  const postImageInputRef = useRef<HTMLInputElement>(null);
-  const [postSaving, setPostSaving] = useState(false);
-
-  // 帖子评论管理
-  const [replyModalOpen, setReplyModalOpen] = useState(false);
-  const [managingPost, setManagingPost] = useState<any>(null);
-  const [postReplies, setPostReplies] = useState<any[]>([]);
-  const [repliesLoading, setRepliesLoading] = useState(false);
 
   // 用户编辑/新增
   const [userModalOpen, setUserModalOpen] = useState(false);
@@ -169,19 +112,6 @@ export default function AdminPage() {
       console.error(e);
     } finally {
       setUsersLoading(false);
-    }
-  };
-
-  // 加载帖子列表
-  const loadPosts = async () => {
-    setPostsLoading(true);
-    try {
-      const res = await apiGet<{ data: AdminPost[] }>('/admin/posts');
-      setPosts(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setPostsLoading(false);
     }
   };
 
@@ -226,155 +156,6 @@ export default function AdminPage() {
   // 更新首页内容字段
   const updateHomeField = (field: string, value: string) => {
     setHomeContent((prev: any) => ({ ...prev, [field]: value }));
-  };
-
-  // 加载频道列表
-  const loadChannels = async () => {
-    setChannelsLoading(true);
-    try {
-      const res = await apiGet<{ data: any[] }>('/admin/channels');
-      setChannels(res.data);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setChannelsLoading(false);
-    }
-  };
-
-  // 打开新增频道弹窗
-  const openAddChannel = () => {
-    setEditingChannel(null);
-    setChannelForm({ name: '', description: '', moderator_id: '', sort: '' });
-    setChannelModalOpen(true);
-  };
-
-  // 打开编辑频道弹窗
-  const openEditChannel = (channel: any) => {
-    setEditingChannel(channel);
-    setChannelForm({
-      name: channel.name || '',
-      description: channel.description || '',
-      moderator_id: channel.moderator_id ? String(channel.moderator_id) : '',
-      sort: channel.sort ? String(channel.sort) : '',
-    });
-    setChannelModalOpen(true);
-  };
-
-  // 保存频道
-  const saveChannel = async () => {
-    if (!channelForm.name.trim()) {
-      alert('频道名称不能为空');
-      return;
-    }
-    setChannelSaving(true);
-    try {
-      if (editingChannel) {
-        await apiPut(`/admin/channels/${editingChannel.id}`, channelForm);
-      } else {
-        await apiPost('/admin/channels', channelForm);
-      }
-      setChannelModalOpen(false);
-      loadChannels();
-    } catch (e: any) {
-      alert(e.message || '保存失败');
-    } finally {
-      setChannelSaving(false);
-    }
-  };
-
-  // 打开编辑帖子弹窗
-  const openEditPost = async (post: any) => {
-    setPostImageSizes({});
-    setEditingPost(post);
-    setPostForm({
-      title: post.title || '',
-      content: post.content || '',
-      channel_id: post.channel_id ? String(post.channel_id) : '',
-      images: [],
-    });
-    setPostModalOpen(true);
-    // 异步加载帖子现有图片
-    try {
-      const res = await apiGet<{ data: { images?: { image_path: string }[] } }>(`/forum/posts/${post.id}`);
-      const imgs = (res.data.images || []).map((i) => i.image_path);
-      setPostForm((prev) => ({ ...prev, images: imgs }));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // 上传帖子图片（后台编辑）
-  const handlePostImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    setPostImageUploading(true);
-    try {
-      for (const file of files) {
-        if (postForm.images.length >= 9) {
-          alert('最多 9 张图片');
-          break;
-        }
-        const form = new FormData();
-        form.append('image', file);
-        const res = await apiUpload<{ url: string }>('/forum/upload', form);
-        setPostForm((prev) => ({ ...prev, images: [...prev.images, res.url] }));
-        setPostImageSizes((prev) => ({ ...prev, [res.url]: file.size }));
-      }
-    } catch (err: any) {
-      alert(err.message || '图片上传失败');
-    } finally {
-      setPostImageUploading(false);
-      if (postImageInputRef.current) postImageInputRef.current.value = '';
-    }
-  };
-
-  // 保存帖子
-  const savePost = async () => {
-    if (!postForm.title.trim()) {
-      alert('标题不能为空');
-      return;
-    }
-    if (!postForm.content.trim()) {
-      alert('内容不能为空');
-      return;
-    }
-    setPostSaving(true);
-    try {
-      await apiPut(`/admin/posts/${editingPost.id}`, postForm);
-      setPostModalOpen(false);
-      loadPosts();
-    } catch (e: any) {
-      alert(e.message || '保存失败');
-    } finally {
-      setPostSaving(false);
-    }
-  };
-
-  // 打开帖子评论管理
-  const openManageReplies = async (post: any) => {
-    setManagingPost(post);
-    setReplyModalOpen(true);
-    setRepliesLoading(true);
-    try {
-      const res = await apiGet<{ data: any[] }>(`/admin/posts/${post.id}/replies`);
-      setPostReplies(res.data);
-    } catch (e) {
-      console.error(e);
-      setPostReplies([]);
-    } finally {
-      setRepliesLoading(false);
-    }
-  };
-
-  // 删除评论
-  const deleteReply = async (replyId: string) => {
-    try {
-      await apiDelete(`/admin/replies/${replyId}`);
-      setPostReplies(postReplies.filter(r => r.id !== replyId));
-    } catch (e) {
-      console.error(e);
-      alert('删除失败');
-    }
   };
 
   // 打开新增用户弹窗
@@ -466,9 +247,7 @@ export default function AdminPage() {
   useEffect(() => {
     if (isAdmin) {
       loadUsers();
-      loadPosts();
       loadHomeContent();
-      loadChannels();
       loadServices();
     }
   }, [isAdmin]);
@@ -496,10 +275,6 @@ export default function AdminPage() {
       await apiDelete(`/admin/${deleteTarget.type}/${deleteTarget.id}`);
       if (deleteTarget.type === 'users') {
         setUsers(users.filter(u => u.id !== deleteTarget.id));
-      } else if (deleteTarget.type === 'posts') {
-        setPosts(posts.filter(p => p.id !== deleteTarget.id));
-      } else if (deleteTarget.type === 'channels') {
-        loadChannels();
       }
     } catch (e) {
       console.error(e);
@@ -527,36 +302,6 @@ export default function AdminPage() {
     );
   }
 
-  // 论坛管理：频道 / 帖子 过滤、排序与显示限制（纯前端，数据已全量加载）
-  const filteredChannels = channels.filter((c) => {
-    const kw = channelKeyword.trim().toLowerCase();
-    if (!kw) return true;
-    return (
-      (c.name || '').toLowerCase().includes(kw) ||
-      (c.moderator_name || '').toLowerCase().includes(kw) ||
-      (c.moderator_realname || '').toLowerCase().includes(kw)
-    );
-  });
-  const shownChannels = filteredChannels.slice(0, visibleChannelCount);
-
-  const filteredPosts = posts
-    .filter((p) => {
-      if (postChannelFilter !== 'all' && p.channel_name !== postChannelFilter) return false;
-      const kw = postKeyword.trim().toLowerCase();
-      if (!kw) return true;
-      return (
-        (p.title || '').toLowerCase().includes(kw) ||
-        (p.author_name || p.username || '').toLowerCase().includes(kw) ||
-        (p.content || '').toLowerCase().includes(kw)
-      );
-    })
-    .sort((a, b) =>
-      postSort === 'views'
-        ? Number(b.view_count || 0) - Number(a.view_count || 0)
-        : new Date(b.create_time).getTime() - new Date(a.create_time).getTime()
-    );
-  const shownPosts = filteredPosts.slice(0, visiblePostCount);
-
   return (
     <div className="mx-auto max-w-6xl px-5 py-8 md:px-8 md:py-12">
       {/* 标题 */}
@@ -567,11 +312,11 @@ export default function AdminPage() {
             <span className="bg-gradient-to-r from-blue-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">管理后台</span>
           </h1>
         </div>
-        <p className="mt-1.5 pl-4 text-sm text-slate-400">用户、帖子、评论管理</p>
+        <p className="mt-1.5 pl-4 text-sm text-slate-400">用户、服务管理</p>
       </div>
 
       {/* 统计卡片 */}
-      <div className="animate-fade-in-up stagger-delay-1 mb-5 grid grid-cols-3 gap-2 md:grid-cols-3 md:gap-4">
+      <div className="animate-fade-in-up stagger-delay-1 mb-5 grid grid-cols-2 gap-2 md:grid-cols-2 md:gap-4">
         <Card className="glass-card relative overflow-hidden border-0">
           <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-blue-500/15 blur-2xl" />
           <CardContent className="relative flex items-center gap-2 p-2.5 md:gap-3 md:p-3.5">
@@ -581,18 +326,6 @@ export default function AdminPage() {
             <div>
               <p className="bg-gradient-to-r from-blue-300 to-cyan-300 bg-clip-text text-lg font-bold text-transparent md:text-2xl">{users.length}</p>
               <p className="text-[10px] text-slate-500 md:text-xs">用户</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="glass-card relative overflow-hidden border-0">
-          <div className="pointer-events-none absolute -right-6 -top-8 h-20 w-20 rounded-full bg-purple-500/15 blur-2xl" />
-          <CardContent className="relative flex items-center gap-3 p-3.5">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-purple-400/30 bg-gradient-to-br from-purple-500/25 to-fuchsia-500/10 text-purple-400 shadow-[0_0_16px_rgba(168,85,247,0.15)] md:h-11 md:w-11">
-              <MessageSquare className="h-4 w-4 md:h-5 md:w-5" />
-            </div>
-            <div>
-              <p className="bg-gradient-to-r from-purple-300 to-fuchsia-300 bg-clip-text text-lg font-bold text-transparent md:text-2xl">{posts.length}</p>
-              <p className="text-[10px] text-slate-500 md:text-xs">帖子</p>
             </div>
           </CardContent>
         </Card>
@@ -702,7 +435,8 @@ export default function AdminPage() {
             )}
           </TabsContent>
 
-          {/* 帖子管理 */}          <TabsContent value="notice">
+          {/* 公告管理 */}
+          <TabsContent value="notice">
             <NoticeTab />
           </TabsContent>
 
@@ -829,7 +563,6 @@ export default function AdminPage() {
             <AlertDialogDescription className="text-slate-400">
               确定要删除「{deleteTarget?.name}」吗？此操作不可撤销。
               {deleteTarget?.type === 'users' && ' 用户的所有帖子和评论也会被删除。'}
-              {deleteTarget?.type === 'posts' && ' 帖子的所有评论和图片也会被删除。'}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -843,226 +576,6 @@ export default function AdminPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* 频道编辑弹窗 */}
-      <Dialog open={channelModalOpen} onOpenChange={setChannelModalOpen}>
-        <DialogContent className="border border-slate-700/60 bg-slate-900/95 text-slate-100 backdrop-blur-xl">
-          <DialogHeader>
-            <DialogTitle className="text-slate-100">{editingChannel ? '编辑频道' : '新增频道'}</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              {editingChannel ? '修改频道信息' : '创建新的论坛频道'}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="channel_name" className="text-xs text-slate-400">频道名称 *</Label>
-              <Input
-                id="channel_name"
-                value={channelForm.name}
-                onChange={(e) => setChannelForm({ ...channelForm, name: e.target.value })}
-                placeholder="例如：技术交流"
-                className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="channel_desc" className="text-xs text-slate-400">频道描述</Label>
-              <Textarea
-                id="channel_desc"
-                value={channelForm.description}
-                onChange={(e) => setChannelForm({ ...channelForm, description: e.target.value })}
-                placeholder="频道的简短描述"
-                className="min-h-[60px] border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="channel_mod" className="text-xs text-slate-400">版主用户ID</Label>
-                <Input
-                  id="channel_mod"
-                  value={channelForm.moderator_id}
-                  onChange={(e) => setChannelForm({ ...channelForm, moderator_id: e.target.value })}
-                  placeholder="留空为无版主"
-                  className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="channel_sort" className="text-xs text-slate-400">排序（数字越小越靠前）</Label>
-                <Input
-                  id="channel_sort"
-                  value={channelForm.sort}
-                  onChange={(e) => setChannelForm({ ...channelForm, sort: e.target.value })}
-                  placeholder="例如：1"
-                  className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setChannelModalOpen(false)} className="border-slate-700 text-slate-200">取消</Button>
-            <Button onClick={saveChannel} disabled={channelSaving} className="bg-blue-600 hover:bg-blue-500">
-              {channelSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              {editingChannel ? '保存修改' : '创建频道'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 帖子编辑弹窗 */}
-      <Dialog open={postModalOpen} onOpenChange={setPostModalOpen}>
-        <DialogContent className="border border-slate-700/60 bg-slate-900/95 text-slate-100 backdrop-blur-xl">
-          <DialogHeader>
-            <DialogTitle className="text-slate-100">编辑帖子</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              修改帖子的标题、内容和所属频道
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="post_title" className="text-xs text-slate-400">标题 *</Label>
-              <Input
-                id="post_title"
-                value={postForm.title}
-                onChange={(e) => setPostForm({ ...postForm, title: e.target.value })}
-                className="border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="post_content" className="text-xs text-slate-400">内容 *</Label>
-              <Textarea
-                id="post_content"
-                value={postForm.content}
-                onChange={(e) => setPostForm({ ...postForm, content: e.target.value })}
-                className="min-h-[120px] border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-slate-400">所属频道</Label>
-              <Select
-                value={postForm.channel_id}
-                onValueChange={(value) => setPostForm({ ...postForm, channel_id: value })}
-                modal={false}
-              >
-                <SelectTrigger className="border-slate-700 bg-slate-800/50 text-slate-100">
-                  <SelectValue placeholder="选择频道" />
-                </SelectTrigger>
-                <SelectContent className="border-slate-700 bg-slate-900 text-slate-100">
-                  <SelectItem value="">未分类</SelectItem>
-                  {channels.map((c) => (
-                    <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {/* 帖子图片管理 */}
-          <div className="space-y-2">
-            <Label className="text-xs text-slate-400">帖子图片（{postForm.images.length}/9）</Label>
-            <div className="flex flex-wrap gap-2.5">
-              {postForm.images.map((url) => (
-                <div key={url} className="w-20">
-                  <div className="relative h-20 w-20 overflow-hidden rounded-lg border border-slate-700">
-                    <img src={url} alt="" className="h-full w-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => setPostForm((prev) => ({ ...prev, images: prev.images.filter((u) => u !== url) }))}
-                      className="absolute right-0.5 top-0.5 rounded-full bg-slate-950/80 p-0.5 text-slate-200 transition-colors hover:bg-red-500/80"
-                      title="移除图片"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  {postImageSizes[url] ? (
-                    <p className="mt-0.5 truncate text-center text-[9px] text-slate-500">{formatBytes(postImageSizes[url])}</p>
-                  ) : null}
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => postImageInputRef.current?.click()}
-                disabled={postImageUploading || postForm.images.length >= 9}
-                className="flex h-20 w-20 flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-slate-600 text-slate-500 transition-colors hover:border-blue-500/60 hover:text-blue-400 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                {postImageUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ImagePlus className="h-5 w-5" />}
-                <span className="text-[10px]">{postImageUploading ? '上传中' : '添加图片'}</span>
-              </button>
-            </div>
-            <input
-              ref={postImageInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/gif,image/webp"
-              multiple
-              className="hidden"
-              onChange={handlePostImageUpload}
-            />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setPostModalOpen(false)} className="border-slate-700 text-slate-200">取消</Button>
-            <Button onClick={savePost} disabled={postSaving} className="bg-blue-600 hover:bg-blue-500">
-              {postSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-              保存修改
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* 帖子评论管理弹窗 */}
-      <Dialog open={replyModalOpen} onOpenChange={setReplyModalOpen}>
-        <DialogContent className="border border-slate-700/60 bg-slate-900/95 text-slate-100 backdrop-blur-xl max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="text-slate-100">管理评论</DialogTitle>
-            <DialogDescription className="text-slate-400">
-              {managingPost?.title ? `帖子：${managingPost.title}` : ''}
-            </DialogDescription>
-          </DialogHeader>
-          <div className="max-h-[60vh] overflow-y-auto overscroll-behavior-contain py-2">
-            {repliesLoading ? (
-              <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16 w-full rounded-lg bg-slate-800/60" />
-                ))}
-              </div>
-            ) : postReplies.length === 0 ? (
-              <div className="py-12 text-center">
-                <MessageCircle className="mx-auto mb-3 h-10 w-10 text-slate-700" />
-                <p className="text-sm text-slate-500">暂无评论</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {postReplies.map((r) => (
-                  <div key={r.id} className="flex items-start justify-between gap-4 rounded-lg border border-slate-800 bg-slate-800/30 p-3">
-                    <div className="flex min-w-0 flex-1 gap-3">
-                      <Avatar className="h-8 w-8 shrink-0 border border-blue-500/30">
-                        <AvatarImage src={r.avatar || undefined} alt={r.username} />
-                        <AvatarFallback className="bg-blue-500/20 text-xs text-blue-300">{r.username?.[0]?.toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-slate-200">{r.author_name || r.username}</span>
-                          <span className="flex items-center gap-1 text-[10px] text-slate-500">
-                            <Clock className="h-3 w-3" /> {formatTime(r.reply_time)}
-                          </span>
-                        </div>
-                        <p className="mt-1 text-sm text-slate-300 break-words">{r.content}</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="shrink-0 text-red-400 hover:bg-red-500/10 hover:text-red-400"
-                      onClick={() => deleteReply(r.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setReplyModalOpen(false)} className="border-slate-700 text-slate-200">关闭</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* 用户编辑/新增弹窗 */}
       <Dialog open={userModalOpen} onOpenChange={setUserModalOpen}>

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Search, Plus, Building2, ImagePlus, Loader2, Wrench, CheckCircle2, Clock3,
-  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3, ClipboardList, ScanLine,
+  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3,
 } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -400,28 +400,6 @@ export default function HotelDetailPage() {
             进入 <ChevronLeft className="h-4 w-4 rotate-180" />
           </div>
         </button>
-
-        <div
-          className="group relative cursor-not-allowed overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 p-6 opacity-50"
-          title="即将上线"
-        >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
-            <ClipboardList className="h-6 w-6" />
-          </div>
-          <div className="text-lg font-semibold text-slate-300">失物招领</div>
-          <div className="mt-1 text-sm text-slate-500">客人遗失物品登记与领取（即将上线）</div>
-        </div>
-
-        <div
-          className="group relative cursor-not-allowed overflow-hidden rounded-3xl border border-slate-800/60 bg-slate-900/30 p-6 opacity-50"
-          title="即将上线"
-        >
-          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-800 text-slate-500">
-            <ScanLine className="h-6 w-6" />
-          </div>
-          <div className="text-lg font-semibold text-slate-300">客房巡检</div>
-          <div className="mt-1 text-sm text-slate-500">巡检任务与记录管理（即将上线）</div>
-        </div>
       </div>
       )}
 
