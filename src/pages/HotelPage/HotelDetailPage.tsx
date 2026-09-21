@@ -544,6 +544,9 @@ export default function HotelDetailPage() {
                             {item.category} · {item.device_type}
                           </span>
                           <span>报障人：{item.created_by_name || '游客'}</span>
+                          <span className="inline-flex items-center gap-1 text-slate-400">
+                            <Clock3 className="h-3 w-3" /> 创建 {formatTime(item.created_at)}
+                          </span>
                         </div>
                         {item.description && (
                           <p className="mt-1.5 line-clamp-2 text-sm text-slate-300">{item.description}</p>
@@ -565,7 +568,6 @@ export default function HotelDetailPage() {
                           <span className="inline-flex items-center gap-1">
                             <Timer className="h-3 w-3" /> 总耗时 {formatDuration(item.total_duration)}
                           </span>
-                          <span>{formatTime(item.created_at)}</span>
                         </div>
                       </div>
 
