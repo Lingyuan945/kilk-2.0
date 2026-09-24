@@ -88,17 +88,17 @@ export default function HomePage() {
             <div className="animate-fade-in-up stagger-delay-1">
               <Link to="/hotel" className="group block h-full">
                 <Card className="glass-card glass-card-hover h-full hover-lift">
-                  <CardContent className="flex items-center gap-2.5 p-3 md:flex-col md:items-center md:p-8 md:text-center">
+                  <CardContent className="flex flex-col items-center gap-1.5 p-3 text-center md:gap-2.5 md:p-8">
                     <div className="icon-hover flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-cyan-500/30 bg-cyan-500/10 text-cyan-400 shadow-[0_0_24px_hsl(189_94%_43%/0.25)] md:h-14 md:w-14">
                       <Building2 className="h-4 w-4 md:h-7 md:w-7" />
                     </div>
-                    <div className="min-w-0 flex-1 md:flex-none">
+                    <div className="min-w-0 md:flex-none">
                       <h3 className="truncate text-[13px] font-semibold text-slate-100 md:mb-2 md:text-lg">酒店运维中心</h3>
                       <p className="hidden text-sm leading-relaxed text-slate-400 md:mb-5 md:block">
                         客房故障登记与处理跟踪，多酒店运维管理，实时统计与状态流转
                       </p>
                     </div>
-                    <span className="shrink-0 text-cyan-400 md:inline-flex md:items-center md:gap-1 md:text-sm md:font-medium md:transition-transform md:duration-300 md:group-hover:translate-x-1">
+                    <span className="hidden shrink-0 text-cyan-400 md:inline-flex md:items-center md:gap-1 md:text-sm md:font-medium md:transition-transform md:duration-300 md:group-hover:translate-x-1">
                       进入运维 <ArrowRight className="hidden h-4 w-4 md:inline" />
                     </span>
                   </CardContent>
