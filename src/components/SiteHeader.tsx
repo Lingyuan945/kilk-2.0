@@ -237,9 +237,7 @@ export default function SiteHeader() {
         <DropdownMenuItem className="cursor-pointer focus:bg-blue-500/10" onClick={openLogin}>
           <LogIn className="mr-2 h-4 w-4" /> 登录
         </DropdownMenuItem>
-        <DropdownMenuItem className="cursor-pointer focus:bg-blue-500/10" onClick={openRegister}>
-          <UserPlus className="mr-2 h-4 w-4" /> 注册
-        </DropdownMenuItem>
+
       </DropdownMenuContent>
     </DropdownMenu>
   );

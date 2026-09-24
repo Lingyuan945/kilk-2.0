@@ -91,10 +91,7 @@ export default function AuthModal({ open, onClose, defaultTab = 'login' }: AuthM
         </h2>
 
         <Tabs defaultValue={defaultTab}>
-          <TabsList className="mb-6 grid w-full grid-cols-2 bg-slate-800/70">
-            <TabsTrigger value="login" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">登录</TabsTrigger>
-            <TabsTrigger value="register" className="data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-300">注册</TabsTrigger>
-          </TabsList>
+          <p className="mb-6 text-center text-sm text-slate-400">账号登录</p>
 
           {/* 错误提示 */}
           {error && (

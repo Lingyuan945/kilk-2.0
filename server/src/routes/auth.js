@@ -56,8 +56,13 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// POST /api/auth/register - 注册
+// POST /api/auth/register - 注册（已关闭）
 router.post('/register', async (req, res) => {
+  return res.status(403).json({ error: '注册通道已关闭，请联系管理员开通账号' });
+});
+
+// 原注册逻辑已禁用，保留占位
+router.post('/_register_disabled', async (req, res) => {
   const { username, name, password, password2 } = req.body;
 
   if (!username || username.length < 3) {
