@@ -592,11 +592,11 @@ export default function HotelDetailPage() {
                               changeStatus(item, item.status === 'pending' ? 'processing' : 'done')
                             }
                             title={item.status === 'pending' ? '开始处理' : '标记完成'}
-                            className="inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-300 transition-all hover:bg-blue-500/25"
+                            className="inline-flex items-center gap-1 rounded-lg border border-blue-500/30 bg-blue-500/10 px-2 py-1 text-[11px] font-medium text-blue-300 transition-all hover:bg-blue-500/25 md:px-2.5 md:text-xs"
                           >
                             {item.status === 'pending' ? (
                               <>
-                                <Wrench className="h-3 w-3" /> 开始处理
+                                <Wrench className="h-3 w-3" /> <span className="md:hidden">开始</span><span className="hidden md:inline">开始处理</span>
                               </>
                             ) : (
                               <>
@@ -609,7 +609,7 @@ export default function HotelDetailPage() {
                           <button
                             onClick={() => changeStatus(item, 'pending')}
                             title="重新打开"
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-600/40 bg-slate-800/60 px-2.5 py-1 text-xs text-slate-300 transition-all hover:bg-slate-700/60"
+                            className="inline-flex items-center gap-1 rounded-lg border border-slate-600/40 bg-slate-800/60 px-2 py-1 text-[11px] text-slate-300 transition-all hover:bg-slate-700/60 md:px-2.5 md:text-xs"
                           >
                             <RotateCcw className="h-3 w-3" /> 重开
                           </button>
@@ -618,21 +618,21 @@ export default function HotelDetailPage() {
                           onClick={() => handleEdit(item)}
                           title="编辑记录"
                           className={cn(
-                            'inline-flex items-center gap-1 rounded-lg border px-2.5 py-1 text-xs font-medium transition-all',
+                            'inline-flex h-7 w-7 items-center justify-center rounded-lg border transition-all md:h-auto md:w-auto md:px-2.5 md:py-1',
                             editingId === item.id
                               ? 'border-cyan-500/40 bg-cyan-500/15 text-cyan-300'
                               : 'border-slate-600/40 bg-slate-800/60 text-slate-300 hover:bg-slate-700/60'
                           )}
                         >
-                          <Pencil className="h-3 w-3" /> 编辑
+                          <Pencil className="h-3 w-3" /> <span className="hidden md:inline md:ml-1">编辑</span>
                         </button>
                         {isAdmin && (
                           <button
                             onClick={() => handleDelete(item)}
                             title="删除记录"
-                            className="inline-flex items-center gap-1 rounded-lg border border-rose-500/25 bg-rose-500/5 px-2.5 py-1 text-xs text-rose-300/80 transition-all hover:bg-rose-500/20"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-rose-500/25 bg-rose-500/5 text-rose-300/80 transition-all hover:bg-rose-500/20 md:h-auto md:w-auto md:px-2.5 md:py-1"
                           >
-                            <Trash2 className="h-3 w-3" /> 删除
+                            <Trash2 className="h-3 w-3" /> <span className="hidden md:inline md:ml-1">删除</span>
                           </button>
                         )}
                       </div>
@@ -656,7 +656,7 @@ export default function HotelDetailPage() {
         <div
           ref={formRef}
           className={cn(
-            'fixed right-0 top-16 z-50 h-[calc(100vh-4rem)] w-full overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out md:w-[480px] md:p-6',
+            'fixed right-0 top-16 z-50 h-[calc(100vh-4rem)] w-full overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out md:w-[480px] md:p-6',
             drawerOpen ? 'translate-x-0' : 'translate-x-full'
           )}
         >
@@ -819,31 +819,38 @@ export default function HotelDetailPage() {
                 </label>
               </Field>
 
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="维修等待时长" auto>
-                  <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
-                    自动计算
+              {editingId ? (
+                <>
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="维修等待时长" auto>
+                      <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
+                        {formatDuration(editingIncident?.wait_duration) || '自动计算'}
+                      </div>
+                    </Field>
+                    <Field label="维修总耗时" auto>
+                      <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
+                        {formatDuration(editingIncident?.total_duration) || '自动计算'}
+                      </div>
+                    </Field>
                   </div>
-                </Field>
-                <Field label="维修总耗时" auto>
-                  <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
-                    自动计算
+                  <div className="grid grid-cols-2 gap-3">
+                    <Field label="创建人" auto>
+                      <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
+                        {editingIncident?.created_by_name || '游客'}
+                      </div>
+                    </Field>
+                    <Field label="创建时间" auto>
+                      <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
+                        {formatTime(editingIncident?.created_at)}
+                      </div>
+                    </Field>
                   </div>
-                </Field>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="创建人" auto>
-                  <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
-                    {editingIncident ? editingIncident.created_by_name || '游客' : user?.name || user?.username || '游客'}
-                  </div>
-                </Field>
-                <Field label="创建时间" auto>
-                  <div className="rounded-lg border border-slate-700/70 bg-slate-800/40 px-3 py-2 text-xs text-slate-500">
-                    {editingIncident ? formatTime(editingIncident.created_at) : '自动生成'}
-                  </div>
-                </Field>
-              </div>
+                </>
+              ) : (
+                <div className="rounded-lg border border-slate-700/50 bg-slate-800/30 px-3 py-2.5 text-center text-[11px] text-slate-500">
+                  编号、等待时长、总耗时、创建信息提交后自动生成
+                </div>
+              )}
 
               <div className="flex gap-2 pt-1">
                 {editingId ? (
@@ -883,7 +890,7 @@ export default function HotelDetailPage() {
                 )}
               </div>
               <p className="text-center text-[11px] text-slate-600">
-                {editingId ? '编辑模式：修改后点击保存修改' : '编号、等待时长、总耗时、创建信息提交后自动生成'}
+                {editingId ? '编辑模式：修改后点击保存修改' : '提交后可在列表实时查看记录'}
               </p>
             </div>
           </div>
