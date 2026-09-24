@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Search, Plus, Building2, ImagePlus, Loader2, Wrench, CheckCircle2, Clock3,
-  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3, AlertTriangle, Pencil,
+  Timer, Trash2, RotateCcw, ChevronLeft, BarChart3, AlertTriangle, Pencil, X,
 } from 'lucide-react';
 import { apiGet, apiPost, apiPut, apiDelete, apiUpload } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
@@ -138,6 +138,8 @@ export default function HotelDetailPage() {
   // 编辑状态
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingIncident, setEditingIncident] = useState<Incident | null>(null);
+  // 抽屉式表单
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   // 功能模块切换
   const [module, setModule] = useState<'select' | 'incident' | 'dashboard'>('select');
@@ -249,6 +251,7 @@ export default function HotelDetailPage() {
     setErrors({});
     setEditingId(null);
     setEditingIncident(null);
+    setDrawerOpen(false);
   };
 
   // 进入编辑模式
@@ -264,7 +267,7 @@ export default function HotelDetailPage() {
       description: item.description,
       attachment: parseAttachments(item.attachment),
     });
-    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setDrawerOpen(true);
   };
 
   const handleUpload = async (file: File) => {
@@ -465,9 +468,9 @@ export default function HotelDetailPage() {
 
       {module === 'incident' && (
       <>
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div>
         {/* 左侧：列表 */}
-        <div className="lg:col-span-2">
+        <div>
           <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
@@ -479,7 +482,7 @@ export default function HotelDetailPage() {
               />
             </div>
             <button
-              onClick={() => formRef.current?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => { resetForm(false); setDrawerOpen(true); }}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-blue-500/90 px-4 py-2 text-sm font-semibold text-white shadow-[0_0_20px_hsl(217_91%_60%/0.35)] transition-all hover:bg-blue-400"
             >
               <Plus className="h-4 w-4" /> 添加记录
@@ -641,17 +644,38 @@ export default function HotelDetailPage() {
           )}
         </div>
 
-        {/* 右侧：登记表单 */}
-        <div ref={formRef} className="scroll-mt-24">
-          <div className="rounded-2xl border border-slate-700/60 bg-slate-900/60 p-5 backdrop-blur">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-slate-100">
-                {editingId ? '编辑记录' : '故障登记'}
-              </h2>
+        {/* 右侧：抽屉式登记表单 */}
+        {/* 遮罩层 */}
+        {drawerOpen && (
+          <div
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+            onClick={() => resetForm(false)}
+          />
+        )}
+        {/* 抽屉面板 */}
+        <div
+          ref={formRef}
+          className={cn(
+            'fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 p-5 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out',
+            drawerOpen ? 'translate-x-0' : 'translate-x-full'
+          )}
+        >
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-base font-semibold text-slate-100">
+              {editingId ? '编辑记录' : '故障登记'}
+            </h2>
+            <div className="flex items-center gap-2">
               <span className="text-[11px] text-slate-500">
                 {editingId ? `编辑 #${editingIncident?.incident_no}` : '新记录'}
               </span>
+              <button
+                onClick={() => resetForm(false)}
+                className="rounded-lg p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-200"
+              >
+                <X className="h-5 w-5" />
+              </button>
             </div>
+          </div>
 
             <div className="space-y-3.5">
               <Field label="故障编号" auto>
