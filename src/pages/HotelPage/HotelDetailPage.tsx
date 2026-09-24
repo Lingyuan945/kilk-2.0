@@ -656,7 +656,7 @@ export default function HotelDetailPage() {
         <div
           ref={formRef}
           className={cn(
-            'fixed right-0 top-0 z-50 h-full w-full max-w-md overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 p-5 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out',
+            'fixed right-0 top-0 z-50 h-full w-full overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out md:w-[480px] md:p-6',
             drawerOpen ? 'translate-x-0' : 'translate-x-full'
           )}
         >
