@@ -10,6 +10,8 @@ import {
   Info,
   UserRound,
   Building2,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -223,10 +225,23 @@ export default function SiteHeader() {
       </DropdownMenuContent>
     </DropdownMenu>
   ) : (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" className="border-slate-700 text-slate-200" onClick={openLogin}>登录</Button>
-      <Button size="sm" className="hidden md:inline-flex" onClick={openRegister}>注册</Button>
-    </div>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <button className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-700 bg-slate-800/60 text-slate-400 transition-all hover:border-blue-500/40 hover:bg-slate-700/60 hover:text-blue-300">
+          <UserRound className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40 border-slate-700 bg-slate-900/95 text-slate-100 backdrop-blur-xl">
+        <DropdownMenuLabel className="text-xs text-slate-400">欢迎访问 kilk</DropdownMenuLabel>
+        <DropdownMenuSeparator className="bg-slate-800" />
+        <DropdownMenuItem className="cursor-pointer focus:bg-blue-500/10" onClick={openLogin}>
+          <LogIn className="mr-2 h-4 w-4" /> 登录
+        </DropdownMenuItem>
+        <DropdownMenuItem className="cursor-pointer focus:bg-blue-500/10" onClick={openRegister}>
+          <UserPlus className="mr-2 h-4 w-4" /> 注册
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 
   return (
