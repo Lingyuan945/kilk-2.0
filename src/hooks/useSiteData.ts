@@ -177,16 +177,20 @@ export function useCreateReply() {
 export function useUserProfile(userId: string) {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!userId) return;
+    setLoading(true);
     apiGet<{ data: any }>(`/users/${userId}`)
       .then((res) => setData(res.data))
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, reloadKey]);
 
-  return { data, loading };
+  const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
+
+  return { data, loading, refetch };
 }
 
 // 用户帖子列表
