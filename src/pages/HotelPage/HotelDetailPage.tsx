@@ -888,7 +888,6 @@ export default function HotelDetailPage() {
             </div>
           </div>
         </div>
-      </div>
       </>
       )}
 
