@@ -60,7 +60,7 @@ const ADMIN_TABS = [
   { value: 'notice', label: '公告', fullLabel: '公告管理', icon: Megaphone },
   { value: 'hotel', label: '酒店', fullLabel: '酒店管理', icon: Building2 },
   { value: 'services', label: '服务', fullLabel: '服务支持', icon: FileText },
-  { value: 'ling', label: '开发者', fullLabel: '开发者管理', icon: IdCard },
+  { value: 'ling', label: '开发者', fullLabel: '开发者管理', icon: IdCard, superOnly: true },
   { value: 'users', label: '用户', fullLabel: '用户管理', icon: Users },
 ] as const;
 
@@ -547,9 +547,11 @@ export default function AdminPage() {
           </TabsContent>
 
           {/* 关于 Ling 管理（仅超级管理员可见） */}
-          <TabsContent value="ling">
-            <DevelopersTab />
-          </TabsContent>
+          {user?.role === 'super' && (
+            <TabsContent value="ling">
+              <DevelopersTab />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
 
