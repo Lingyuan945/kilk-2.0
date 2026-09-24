@@ -656,7 +656,8 @@ export default function HotelDetailPage() {
         <div
           ref={formRef}
           className={cn(
-            'fixed right-0 top-16 z-50 h-[calc(100vh-4rem)] w-full overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out md:w-[480px] md:p-6',
+            'fixed right-0 top-16 z-50 h-[calc(100vh-4rem)] supports-[height:100dvh]:h-[calc(100dvh-4rem)] w-full overflow-y-auto border-l border-slate-700/60 bg-slate-900/95 p-4 shadow-2xl backdrop-blur-xl transition-transform duration-300 ease-out md:w-[480px] md:p-6',
+            'pb-[calc(env(safe-area-inset-bottom)+96px)] supports-[height:100dvh]:pb-[calc(env(safe-area-inset-bottom)+16px)] md:pb-6',
             drawerOpen ? 'translate-x-0' : 'translate-x-full'
           )}
         >
@@ -852,7 +853,7 @@ export default function HotelDetailPage() {
                 </div>
               )}
 
-              <div className="flex gap-2 pt-1">
+              <div className="sticky bottom-0 -mx-1 mt-2 flex gap-2 border-t border-slate-800/80 bg-slate-900/95 px-1 pt-3 backdrop-blur">
                 {editingId ? (
                   <>
                     <button
