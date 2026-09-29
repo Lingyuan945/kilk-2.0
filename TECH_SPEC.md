@@ -129,7 +129,6 @@ server/src/
 │   ├── service.js      # 服务支持
 │   ├── ling.js         # 开发者主页
 │   ├── developers.js   # 开发者管理
-│   ├── forum.js        # 论坛（旧，已废弃）
 │   └── home.js         # 首页数据
 └── utils/
     └── password.js     # 密码工具
@@ -283,3 +282,23 @@ NODE_ENV=production
 - 服务支持中心（游客可下载）
 - 开发者主页
 - 用户资料管理
+
+---
+
+## 八、维护与清理规范
+
+### 三端同步原则
+任何代码改动必须同时完成：
+1. **本地 Git 提交**（不推送远端）
+2. **本地 Vite 构建**（`VITE_API_BASE=/api npx vite build`）
+3. **服务器部署**（scp + systemctl restart）
+
+### 冗余清理规范
+- 废弃功能必须从三端完整移除：前端页面、路由、hooks、类型定义、后端路由、数据库表
+- 数据库表删除前确认无关联依赖（CASCADE）
+- 清理后必须验证：`tsc --noEmit` 编译通过、`vite build` 构建通过、线上服务正常运行
+
+### 本地环境维护
+- C 盘根目录禁止存放临时文件和调试 profile（`edge-headless-*` 等）
+- 用户主目录只保留必要工具配置（.ssh / .gitconfig / .vscode / Doubao 等）
+- 定期清理 TEMP 目录和 Windows Temp 目录
