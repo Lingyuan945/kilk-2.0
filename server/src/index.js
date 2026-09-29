@@ -4,7 +4,6 @@ import { config } from './config.js';
 import { initDatabase } from './init.js';
 
 import authRoutes from './routes/auth.js';
-import forumRoutes from './routes/forum.js';
 import userRoutes from './routes/user.js';
 import serviceRoutes from './routes/service.js';
 import homeRoutes from './routes/home.js';
@@ -28,7 +27,6 @@ app.get('/api/health', (req, res) => {
 
 // 路由
 app.use('/api/auth', authRoutes);
-app.use('/api/forum', forumRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/service', serviceRoutes);
 app.use('/api/home', homeRoutes);

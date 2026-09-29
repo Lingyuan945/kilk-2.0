@@ -1,11 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
-import { apiGet, apiPost, apiUpload } from '@/lib/api';
+import { apiGet } from '@/lib/api';
 import type {
-  User,
-  Channel,
-  ForumPost,
-  ForumPostImage,
-  ForumReply,
   HomeContent,
   ServiceFile,
 } from '@/types';
@@ -26,153 +21,6 @@ export function useHomeContent() {
   return { data, loading, error };
 }
 
-// ========== 频道列表 ==========
-export function useChannels() {
-  const [data, setData] = useState<Channel[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    apiGet<{ data: Channel[] }>('/forum/channels')
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  return { data, loading };
-}
-
-// ========== 帖子列表 ==========
-export interface PostListResult {
-  data: (ForumPost & {
-    username?: string;
-    author_name?: string;
-    avatar?: string;
-    role?: string;
-    channel_name?: string;
-    reply_count?: number;
-  })[];
-  loading: boolean;
-  pagination: { page: number; page_size: number; total: number };
-  reload: () => void;
-}
-
-export function useForumPosts(channelId?: string, page = 1, pageSize = 20): PostListResult {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [pagination, setPagination] = useState({ page, page_size: pageSize, total: 0 });
-  const [reloadKey, setReloadKey] = useState(0);
-
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
-
-  useEffect(() => {
-    setLoading(true);
-    const params = new URLSearchParams({ page: String(page), page_size: String(pageSize) });
-    if (channelId) params.set('channel_id', channelId);
-
-    apiGet<any>(`/forum/posts?${params.toString()}`)
-      .then((res) => {
-        setData(res.data);
-        setPagination(res.pagination);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [channelId, page, pageSize, reloadKey]);
-
-  return { data, loading, pagination, reload };
-}
-
-// ========== 帖子详情 ==========
-export interface PostDetail extends ForumPost {
-  username?: string;
-  author_name?: string;
-  avatar?: string;
-  role?: string;
-  signature?: string;
-  channel_name?: string;
-  images?: ForumPostImage[];
-  replies?: (ForumReply & {
-    username?: string;
-    author_name?: string;
-    avatar?: string;
-    role?: string;
-  })[];
-}
-
-export function usePostDetail(postId: string) {
-  const [data, setData] = useState<PostDetail | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
-
-  useEffect(() => {
-    if (!postId) return;
-    setLoading(true);
-    apiGet<{ data: PostDetail }>(`/forum/posts/${postId}`)
-      .then((res) => { setData(res.data); setError(null); })
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, [postId, reloadKey]);
-
-  return { data, loading, error, reload };
-}
-
-// ========== 发帖 ==========
-export function useCreatePost() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createPost = useCallback(async (title: string, content: string, channelId: string, images: string[] = []) => {    setLoading(true);
-    setError(null);
-    try {
-      const res = await apiPost<{ post_id: number }>('/forum/posts', {
-        title,
-        content,
-        channel_id: channelId,
-        images,
-      });
-      return res.post_id;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  // 上传帖子图片，返回可用的 /upload/ 路径
-  const uploadPostImage = useCallback(async (file: File): Promise<string> => {
-    const form = new FormData();
-    form.append('image', file);
-    const res = await apiUpload<{ url: string }>('/forum/upload', form);
-    return res.url;
-  }, []);
-
-  return { createPost, uploadPostImage, loading, error };
-}
-
-// ========== 评论 ==========
-export function useCreateReply() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const createReply = useCallback(async (postId: string, content: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      await apiPost(`/forum/posts/${postId}/replies`, { content });
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  return { createReply, loading, error };
-}
-
 // ========== 用户信息 ==========
 export function useUserProfile(userId: string) {
   const [data, setData] = useState<any>(null);
@@ -191,26 +39,6 @@ export function useUserProfile(userId: string) {
   const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
 
   return { data, loading, refetch };
-}
-
-// 用户帖子列表
-export function useUserPosts(userId: string) {
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [reloadKey, setReloadKey] = useState(0);
-
-  useEffect(() => {
-    if (!userId) return;
-    setLoading(true);
-    apiGet<{ data: any[] }>(`/users/${userId}/posts`)
-      .then((res) => setData(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, [userId, reloadKey]);
-
-  const reload = useCallback(() => setReloadKey((k) => k + 1), []);
-
-  return { data, loading, reload };
 }
 
 // ========== 服务文件列表 ==========

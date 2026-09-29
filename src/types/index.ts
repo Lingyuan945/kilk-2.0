@@ -13,41 +13,6 @@ export interface User {
   create_time: string;
 }
 
-export interface Channel {
-  id: string;
-  name: string;
-  description: string;
-  moderator_id: string;
-  sort: string;
-  create_time: string;
-}
-
-export interface ForumPost {
-  id: string;
-  user_id: string;
-  title: string;
-  content: string;
-  image: string;
-  view_count: string;
-  create_time: string;
-  channel_id: string;
-}
-
-export interface ForumPostImage {
-  id: string;
-  post_id: string;
-  image_path: string;
-  sort: string;
-}
-
-export interface ForumReply {
-  id: string;
-  post_id: string;
-  user_id: string;
-  content: string;
-  create_time: string;
-}
-
 export interface HomeContent {
   id: string;
   banner_title: string;
