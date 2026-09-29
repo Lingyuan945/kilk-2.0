@@ -37,6 +37,13 @@ export async function apiRequest<T = any>(
     credentials: 'include',
   });
 
+  // 401 未授权：自动清除 token
+  if (res.status === 401) {
+    clearToken();
+    // 不跳转登录，由前端组件处理
+    throw new Error('登录已过期，请重新登录');
+  }
+
   const data = await res.json().catch(() => ({ ok: false, msg: '响应解析失败' }));
 
   if (!res.ok || !data.ok) {

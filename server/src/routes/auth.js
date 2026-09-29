@@ -58,61 +58,7 @@ router.post('/login', async (req, res) => {
 
 // POST /api/auth/register - 注册（已关闭）
 router.post('/register', async (req, res) => {
-  return res.status(403).json({ error: '注册通道已关闭，请联系管理员开通账号' });
-});
-
-// 原注册逻辑已禁用，保留占位
-router.post('/_register_disabled', async (req, res) => {
-  const { username, name, password, password2 } = req.body;
-
-  if (!username || username.length < 3) {
-    return res.status(400).json({ ok: false, msg: '账号至少3位' });
-  }
-  if (!password || password.length < 6) {
-    return res.status(400).json({ ok: false, msg: '密码至少6位' });
-  }
-  if (password !== password2) {
-    return res.status(400).json({ ok: false, msg: '两次密码不一致' });
-  }
-
-  try {
-    // 检查用户名是否已存在
-    const { rows: existing } = await db.query(
-      'SELECT id FROM "user" WHERE username = $1 LIMIT 1',
-      [username]
-    );
-    if (existing.length > 0) {
-      return res.status(400).json({ ok: false, msg: '该账号已被注册' });
-    }
-
-    const hashedPassword = hashPassword(password);
-    const userNo = '100000' + String(Date.now()).slice(-4);
-
-    const { rows: inserted } = await db.query(
-      `INSERT INTO "user" (user_no, username, name, password, role, avatar, signature, department, job_number, remark, create_time)
-       VALUES ($1, $2, $3, $4, 'user', '', '', '', '', '-', NOW())
-       RETURNING id`,
-      [userNo, username, name || username, hashedPassword]
-    );
-    const newId = inserted[0].id;
-
-    const { rows: newUserRows } = await db.query(
-      'SELECT * FROM "user" WHERE id = $1',
-      [newId]
-    );
-    const newUser = newUserRows[0];
-    const token = generateToken(newUser);
-
-    res.json({
-      ok: true,
-      msg: '注册成功',
-      token,
-      user: sanitizeUser(newUser),
-    });
-  } catch (err) {
-    console.error('[Auth] 注册错误:', err);
-    res.status(500).json({ ok: false, msg: '服务器错误，请稍后重试' });
-  }
+  return res.status(403).json({ ok: false, msg: '注册通道已关闭，请联系管理员开通账号' });
 });
 
 // GET /api/auth/me - 当前用户信息

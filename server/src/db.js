@@ -13,6 +13,12 @@ const pool = new Pool({
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
+  maxLifetimeSeconds: 3600, // 连接最长生命周期 1 小时，自动重建避免服务端断开
+});
+
+// 连接池错误监听（防止闲置连接断开导致进程崩溃）
+pool.on('error', (err) => {
+  console.error('[DB] 连接池错误:', err.message);
 });
 
 // 兼容层：提供与原代码相同的 query / exec 接口

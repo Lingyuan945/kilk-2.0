@@ -45,6 +45,10 @@ app.use('/api', (req, res) => {
 
 // 错误处理
 app.use((err, req, res, next) => {
+  // JSON 解析错误返回 400
+  if (err.type === 'entity.parse.failed') {
+    return res.status(400).json({ ok: false, msg: '请求参数格式错误' });
+  }
   console.error('[Error]', err);
   res.status(500).json({ ok: false, msg: '服务器内部错误' });
 });
