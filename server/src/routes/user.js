@@ -52,45 +52,12 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ ok: false, msg: '用户不存在' });
     }
 
-    // 用户的帖子数
-    const { rows: postRows } = await db.query(
-      'SELECT COUNT(*) as count FROM forum_post WHERE user_id = $1',
-      [id]
-    );
-
     res.json({
       ok: true,
-      data: {
-        ...rows[0],
-        post_count: Number(postRows[0].count),
-      },
+      data: rows[0],
     });
   } catch (err) {
     console.error('[User] 获取用户信息错误:', err);
-    res.status(500).json({ ok: false, msg: '服务器错误' });
-  }
-});
-
-// GET /api/users/:id/posts - 用户的帖子列表
-router.get('/:id/posts', async (req, res) => {
-  const { id } = req.params;
-  const { page = 1, page_size = 20 } = req.query;
-  const offset = (Number(page) - 1) * Number(page_size);
-
-  try {
-    const { rows: posts } = await db.query(
-      `SELECT p.*, c.name as channel_name
-       FROM forum_post p
-       LEFT JOIN channel c ON p.channel_id = c.id
-       WHERE p.user_id = $1
-       ORDER BY p.create_time DESC
-       LIMIT $2 OFFSET $3`,
-      [id, Number(page_size), offset]
-    );
-
-    res.json({ ok: true, data: posts });
-  } catch (err) {
-    console.error('[User] 获取用户帖子错误:', err);
     res.status(500).json({ ok: false, msg: '服务器错误' });
   }
 });
