@@ -18,6 +18,8 @@ Nginx/Apache 反向代理 (kilk.online)
     PostgreSQL 数据库
 ```
 
+**项目本地路径**：`G:\IT-08\Github\kilk 2.0`（2026-10-18 从 C 盘迁移至移动硬盘）
+
 ---
 
 ## 二、前端技术栈
@@ -39,25 +41,30 @@ Nginx/Apache 反向代理 (kilk.online)
 ```
 src/
 ├── components/     # 通用组件
-│   ├── Layout.tsx          # 全局布局
-│   ├── SiteHeader.tsx      # 顶部导航
-│   ├── AuthModal.tsx       # 登录弹窗
-│   └── EmptyState.tsx      # 空状态组件
+│   ├── Layout.tsx              # 全局布局
+│   ├── SiteHeader.tsx          # 顶部导航（下拉式登录菜单）
+│   ├── AuthModal.tsx           # 登录弹窗
+│   ├── DeveloperCardEntry.tsx  # 开发者卡片入口
+│   └── EmptyState.tsx          # 空状态组件
 ├── contexts/       # React Context
-│   └── AuthContext.tsx     # 用户认证上下文
+│   └── AuthContext.tsx         # 用户认证上下文
 ├── hooks/          # 自定义 Hooks
-│   └── useSiteData.ts      # 数据请求 Hook
+│   └── useSiteData.ts          # 数据请求 Hook
 ├── lib/            # 工具库
-│   └── api.ts              # API 请求封装
+│   ├── api.ts                  # API 请求封装
+│   └── format.ts               # 格式化工具
 ├── pages/          # 页面（全部懒加载）
-│   ├── HomePage/           # 首页
-│   ├── HotelPage/          # 酒店运维列表
-│   ├── HotelPage/HotelDetailPage.tsx  # 故障登记详情
-│   ├── AdminPage/          # 后台管理
-│   ├── ServicePage/        # 服务支持
-│   ├── NoticePage/         # 平台公告
-│   ├── AboutPage/          # 关于
-│   └── ...
+│   ├── HomePage/               # 首页
+│   ├── HotelPage/              # 酒店运维列表 + 故障登记详情
+│   ├── AdminPage/              # 后台管理
+│   ├── ServicePage/            # 服务支持
+│   ├── NoticePage/             # 平台公告
+│   ├── AboutPage/              # 关于我们
+│   ├── UserProfilePage/        # 用户资料页
+│   ├── DeveloperCardManagePage/ # 开发者卡片管理
+│   ├── DevelopersListPage/     # 开发者列表
+│   ├── LingPage/               # 开发者主页（关于 Ling）
+│   └── NotFoundPage/           # 404 页面
 └── types/          # TypeScript 类型定义
 ```
 
@@ -65,9 +72,9 @@ src/
 
 | 路由 | 权限 | 说明 |
 |------|------|------|
-| `/` | 公开 | 首页 |
+| `/` | 公开 | 首页（未登录隐藏酒店运维入口） |
 | `/hotel` | senior+ | 酒店运维中心列表 |
-| `/hotel/:hotelId` | senior+ | 单酒店故障登记详情 |
+| `/hotel/:hotelId` | senior+ | 单酒店故障登记详情（抽屉式表单） |
 | `/service` | 公开 | 服务支持（游客可下载） |
 | `/notice` | 公开 | 平台公告 |
 | `/about` | 公开 | 关于我们 |
@@ -80,8 +87,8 @@ src/
 
 | 角色 | 标识 | 权限范围 |
 |------|------|----------|
-| 游客 | 无 | 公开页面 |
-| 普通用户 | `user` | 登录后页面 |
+| 游客 | 无 | 公开页面（首页、服务支持、公告、关于） |
+| 普通用户 | `user` | 登录后页面、用户资料、开发者卡片 |
 | 高级用户 | `senior` | 酒店运维模块 |
 | 管理员 | `admin` | 后台管理、删除操作 |
 | 超级管理员 | `super` | 开发者管理标签页 |
@@ -121,10 +128,10 @@ server/src/
 ├── middleware/
 │   └── auth.js     # 认证中间件
 ├── routes/
-│   ├── auth.js         # 登录/注册
-│   ├── hotel.js        # 酒店运维
+│   ├── auth.js         # 登录/注册（注册已关闭）
+│   ├── hotel.js        # 酒店运维 + 故障登记 + 附件上传
 │   ├── admin.js        # 后台管理
-│   ├── user.js         # 用户管理
+│   ├── user.js         # 用户管理（资料/头像/密码）
 │   ├── notice.js       # 公告
 │   ├── service.js      # 服务支持
 │   ├── ling.js         # 开发者主页
@@ -165,8 +172,8 @@ server/src/
 
 **HTTP 状态码**：
 - 200 成功
-- 400 参数错误
-- 401 未登录/token 过期
+- 400 参数错误（JSON 解析失败）
+- 401 未登录/token 过期（前端自动清 token）
 - 403 权限不足
 - 404 资源不存在
 - 500 服务器错误
@@ -182,19 +189,25 @@ server/src/
   max: 10,                    // 最大连接数
   idleTimeoutMillis: 30000,   // 闲置连接超时 30 秒
   connectionTimeoutMillis: 5000,  // 获取连接超时 5 秒
-  maxLifetimeSeconds: 3600,   // 连接最长生命周期 1 小时
+  maxLifetimeSeconds: 3600,   // 连接最长生命周期 1 小时（自动重建）
 }
 ```
 
-### 数据表
+连接池启用 `error` 事件监听，防止闲置连接断开导致进程崩溃。
+
+### 数据表（共 9 张）
 
 | 表名 | 用途 |
 |------|------|
-| `user` | 用户表（用户名、密码、角色、头像等） |
+| `user` | 用户表（用户名、密码、角色、头像、签名、部门、工号等） |
 | `hotels` | 酒店元数据（名称、楼栋、类别、设备类型 JSON 配置） |
 | `hotel_incident` | 客房故障登记（房间号、楼栋、状态、附件、时长等） |
 | `notice` | 平台公告 |
+| `home_content` | 首页内容配置（Banner、卡片文案） |
 | `ling_profile` | 开发者个人主页配置 |
+| `developers` | 开发者卡片信息 |
+| `service_file` | 服务支持文件分类 |
+| `service_file_item` | 服务支持文件条目（版本、下载量） |
 
 ### 关键设计
 
@@ -202,6 +215,7 @@ server/src/
 - 故障编号：自动生成 `GZYYYYMMDD-NNN` 格式
 - 状态流转：`pending`（待处理）→ `processing`（处理中）→ `done`（已完成）
 - 时长计算：从创建时间开始自动计算等待时长和总耗时
+- 酒店配置：`buildings` / `categories` / `device_types` 均为 JSONB 数组
 
 ---
 
@@ -228,6 +242,7 @@ server/src/
 5. **上传后端**：
    - scp 改动的 `server/src/xxx.js` 到服务器
    - `sudo systemctl restart kilk2.service`
+6. **验证**：`curl http://localhost:3001/api/health` + 线上页面检查
 
 ### 环境变量
 
@@ -248,40 +263,54 @@ NODE_ENV=production
 
 ### 前端
 - 使用 `cn()` 工具合并 Tailwind 类名
-- 深色科技风设计语言（slate 色系 + 渐变色）
+- 深色科技风设计语言（slate 色系 + 渐变色 + 网格背景）
 - 响应式：移动端优先，`md:` 断点适配桌面
 - 错误处理：`try/catch` + toast 提示
 - 加载状态：骨架屏 / Spinner
+- 抽屉式表单：故障登记使用右侧滑出抽屉，提交按钮固定底部
+- 401 自动处理：API 层拦截 401 响应，自动清除 token
 
 ### 后端
 - 所有路由必须有错误处理（try/catch）
 - 数据库查询使用参数化（`$1, $2`），防 SQL 注入
 - 权限中间件按路由粒度挂载
-- 文件上传限制：5MB，仅图片格式
+- 文件上传限制：故障附件 5MB（仅图片），头像 2MB
+- JSON 解析错误返回 400 而非 500
 
 ---
 
 ## 七、已实现功能清单
 
 **酒店运维模块**：
-- 多酒店管理
-- 故障登记（抽屉式表单）
-- 多图附件上传
-- 故障状态流转
-- 故障编辑
+- 多酒店管理（启用/停用、排序、主题色）
+- 故障登记（右侧抽屉式表单）
+- 多图附件上传（支持多张）
+- 故障状态流转（待处理→处理中→已完成）
+- 故障编辑（内容、类别、设备、附件）
 - 创建时间完整显示（年月日时分秒）
 - 按酒店隔离数据
+- 关键词搜索 + 状态筛选
+- 故障统计（待处理/处理中/已完成/总数）
 
 **权限体系**：
 - 四级角色（user/senior/admin/super）
 - 路由守卫 + API 权限双重校验
-- 注册通道已关闭（管理员开通账号）
+- 注册通道已关闭（仅管理员开通账号）
+- 未登录隐藏酒店运维入口
+- 开发者管理选项对无权限账户隐藏
+
+**用户系统**：
+- 用户资料页（头像、签名、部门、工号）
+- 头像上传
+- 密码修改
+- 下拉式登录菜单
 
 **其他**：
 - 平台公告
 - 服务支持中心（游客可下载）
-- 开发者主页
-- 用户资料管理
+- 开发者主页（关于 Ling）
+- 开发者卡片管理
+- 开发者列表
 
 ---
 
@@ -297,8 +326,10 @@ NODE_ENV=production
 - 废弃功能必须从三端完整移除：前端页面、路由、hooks、类型定义、后端路由、数据库表
 - 数据库表删除前确认无关联依赖（CASCADE）
 - 清理后必须验证：`tsc --noEmit` 编译通过、`vite build` 构建通过、线上服务正常运行
+- 已移除模块：旧论坛系统（forum_post / forum_post_image / forum_reply / channel 表及相关路由页面）
 
 ### 本地环境维护
 - C 盘根目录禁止存放临时文件和调试 profile（`edge-headless-*` 等）
 - 用户主目录只保留必要工具配置（.ssh / .gitconfig / .vscode / Doubao 等）
 - 定期清理 TEMP 目录和 Windows Temp 目录
+- 项目代码统一存放于移动硬盘 `G:\IT-08\`
