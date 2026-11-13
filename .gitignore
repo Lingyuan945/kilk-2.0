@@ -63,6 +63,9 @@ pnpm-lock.yaml
 # Agent files
 .agent/
 
+# 项目内置便携工具（Git/密钥等，仅本机使用，不进仓库）
+.tools/
+
 # ===== kilk 2.0 专属 =====
 
 # 敏感配置（含数据库密码、JWT密钥）
