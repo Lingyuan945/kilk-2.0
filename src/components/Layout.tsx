@@ -69,13 +69,18 @@ export default function Layout() {
       if (cancelled) return;
       PREFETCH_CHUNKS.forEach((load) => load().catch(() => {}));
     };
-    const id = typeof requestIdleCallback === 'function'
-      ? requestIdleCallback(run, { timeout: 2000 })
-      : setTimeout(run, 800);
+    // 分别返回，避免 requestIdleCallback 与 setTimeout 的句柄类型混用
+    if (typeof requestIdleCallback === 'function') {
+      const idleId = requestIdleCallback(run, { timeout: 2000 });
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(idleId);
+      };
+    }
+    const timerId = window.setTimeout(run, 800);
     return () => {
       cancelled = true;
-      if (typeof requestIdleCallback === 'function') cancelIdleCallback(id);
-      else clearTimeout(id);
+      window.clearTimeout(timerId);
     };
   }, []);
 

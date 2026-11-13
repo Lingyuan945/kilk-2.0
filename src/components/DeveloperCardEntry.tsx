@@ -16,7 +16,8 @@ export default function DeveloperCardEntry({ username }: { username: string }) {
     (async () => {
       try {
         const res = await apiGet<{ data: unknown }>('/developers/me');
-        if (mounted) setIsDeveloper(res.ok && !!res.data);
+        // apiRequest 在 ok=false 时已抛错，能走到这里即代表成功
+        if (mounted) setIsDeveloper(!!res.data);
       } catch {
         if (mounted) setIsDeveloper(false);
       }

@@ -205,7 +205,7 @@ export default function AdminPage() {
           remark: userForm.remark,
         });
         // 如果角色也改了，同时更新角色
-        if (userForm.role !== editingUser.role && Number(editingUser.id) !== user?.id) {
+        if (userForm.role !== editingUser.role && String(editingUser.id) !== String(user?.id)) {
           await apiPut(`/admin/users/${editingUser.id}`, { role: userForm.role });
         }
       } else {
@@ -405,7 +405,6 @@ export default function AdminPage() {
                             value={u.role}
                             onValueChange={(value) => handleRoleChange(u.id, value)}
                             disabled={u.id === user?.id}
-                            modal={false}
                           >
                             <SelectTrigger className="w-28 border-slate-700 bg-slate-800/60 text-xs text-slate-200 disabled:cursor-not-allowed disabled:opacity-50">
                               <SelectValue placeholder={u.id === user?.id ? '当前账号' : undefined} />
@@ -666,13 +665,12 @@ export default function AdminPage() {
                     className="min-h-[60px] border-slate-700 bg-slate-800/50 text-slate-100 placeholder:text-slate-500"
                   />
                 </div>
-                {editingUser && Number(editingUser.id) !== user?.id && (
+                {editingUser && String(editingUser.id) !== String(user?.id) && (
                   <div className="space-y-2">
                     <Label className="text-xs text-slate-400">角色</Label>
                     <Select
                       value={userForm.role}
                       onValueChange={(value) => setUserForm({ ...userForm, role: value })}
-                      modal={false}
                     >
                       <SelectTrigger className="border-slate-700 bg-slate-800/50 text-slate-100">
                         <SelectValue />

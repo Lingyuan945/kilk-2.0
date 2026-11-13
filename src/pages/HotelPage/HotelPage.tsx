@@ -14,6 +14,7 @@ type HotelStat = {
   device_types: string[];
   enabled: number;
   sort: number;
+  description?: string | null;
   pending: number;
   processing: number;
   done: number;
