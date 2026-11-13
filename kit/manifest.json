@@ -1,0 +1,63 @@
+{
+  "project": "kilk 2.0",
+  "kind": "team-platform",
+  "updated": "2026-11-13",
+  "localRoot": "G:\\IT-08\\Github\\kilk 2.0",
+  "entry": "AGENTS.md",
+  "ends": {
+    "local": "唯一源码真值源",
+    "server": {
+      "host": "120.25.179.176",
+      "user": "admin",
+      "domain": "https://kilk.online",
+      "frontend": "/var/www/kilk2/frontend",
+      "backend": "/var/www/kilk2/src",
+      "service": "kilk2",
+      "auth": "ssh key (verified 2026-11-13)"
+    },
+    "github": {
+      "repo": "git@github.com:Lingyuan945/kilk-2.0.git",
+      "visibility": "public",
+      "auth": "ssh key (verified 2026-11-13)",
+      "lastPushedCommit": "b740184",
+      "lastPushedAt": "2026-09-16",
+      "note": "与本地无共同祖先，本地内容为其超集，推送需先建分支备份"
+    }
+  },
+  "folders": [
+    { "path": "kit/specs", "purpose": "项目规范", "upload": true },
+    { "path": "kit/rules", "purpose": "智能体硬约束/流程/验收", "upload": true },
+    { "path": "kit/onboarding", "purpose": "快速上手与项目地图", "upload": true },
+    { "path": "kit/scripts", "purpose": "构建/链路验证/快照/git 包装", "upload": true },
+    { "path": "kit/private/tools", "purpose": "便携 Git 2.56.1", "upload": false },
+    { "path": "kit/private/keys", "purpose": "SSH 私钥副本与公钥", "upload": false },
+    { "path": "kit/private/backups", "purpose": "每次完整更新的快照", "upload": false },
+    { "path": "kit/private/sandbox", "purpose": "沙箱 ACL 诊断记录", "upload": false },
+    { "path": "kit/private/state", "purpose": "本机状态与最近备份指针", "upload": false }
+  ],
+  "tools": {
+    "node": "C:\\Users\\Administrator\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\node\\bin\\node.exe",
+    "npm": "C:\\Users\\Administrator\\.workbuddy\\binaries\\node\\versions\\22.22.2-6\\npm.cmd",
+    "git": "kit\\private\\tools\\PortableGit\\cmd\\git.exe",
+    "edge": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
+  },
+  "environment": {
+    "postgres": "未安装（本地后端无法启动）",
+    "shell": "Windows PowerShell 5.1",
+    "encoding": "UTF-8；PowerShell 读文件需 -Encoding UTF8",
+    "sandbox": "受限模式下 MSYS 无法创建命名管道，git 网络操作需完全权限"
+  },
+  "commands": {
+    "typecheck": "& $NODE node_modules/typescript/bin/tsc -p tsconfig.app.json",
+    "build": "$env:VITE_API_BASE='/api'; & $NODE node_modules/vite/bin/vite.js build",
+    "snapshot": "powershell -ExecutionPolicy Bypass -File .\\kit\\scripts\\snapshot.ps1 -Label \"...\"",
+    "verifyLinks": "powershell -ExecutionPolicy Bypass -File .\\kit\\scripts\\verify-links.ps1"
+  },
+  "knownIssues": {
+    "typecheckErrors": 9,
+    "missingDdl": ["developers"],
+    "unauthenticatedUpload": ["POST /api/hotel/upload"],
+    "deadCode": ["src/pages/AdminPage/LingTab.tsx", "server/src/routes/admin.js#forum-routes"],
+    "orphanTables": ["ling_profile"]
+  }
+}
