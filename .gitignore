@@ -62,6 +62,7 @@ pnpm-lock.yaml
 
 # Agent files
 .agent/
+.workbuddy/
 
 # 项目内置便携工具（Git/密钥等，仅本机使用，不进仓库）
 .tools/
