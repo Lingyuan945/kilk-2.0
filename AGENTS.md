@@ -53,7 +53,7 @@ powershell -ExecutionPolicy Bypass -File ".\kit\scripts\status.ps1"
 
 | 项 | 事实（2026-11-13 实测） |
 |----|------------------------|
-| 本地代码 | `main` 分支，HEAD `d4d0f63`，工作区干净 |
+| 本地代码 | `main` 分支，工作区干净（具体 HEAD 用 `status.ps1` 看，这里不钉死提交号） |
 | 类型检查 | **0 错误**。历史遗留的 8 处已全部修掉，现在新增一处就是你的问题 |
 | 本地构建 | `dist/output` 指纹 `index-CxRY2fll.js`，已构建但**从未部署** |
 | 线上前端 | 仍是 `index-IaKZUkHv.js`（9-29 构建），比本地旧 |
@@ -61,7 +61,7 @@ powershell -ExecutionPolicy Bypass -File ".\kit\scripts\status.ps1"
 | 线上服务 | `kilk2` active，`/api/health` 返回 `{"ok":true}` |
 | 线上数据库 | `kilk` 库 9 张表，数据很薄：5 用户 / 1 酒店 / 2 故障 / 1 公告 / 2 服务文件 / 2 名片 |
 | 本地数据库 | 已装 PostgreSQL 16.15 便携版，**但默认不启动**，用 `kit\scripts\localdb.cmd start` 拉起 |
-| GitHub | `origin/main` 停在 9-16 的**论坛版**（`b740184`）；现网真值在 `origin/main-local`（`d4d0f63`）。**不要看 main** |
+| GitHub | `origin/main` 停在 9-16 的**论坛版**（`b740184`）；现网真值在 `origin/main-local`，与本地 `main` 同步。**不要看 main** |
 
 **以下说法已经过时，遇到请直接忽略**（旧文档里的残留，本次已同步修正，但别的笔记可能还留着）：
 

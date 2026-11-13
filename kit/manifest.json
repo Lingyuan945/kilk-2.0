@@ -24,7 +24,7 @@
       "auth": "ssh key (verified 2026-11-13)",
       "defaultBranch": "main（9-16 的论坛版，不是现网代码，勿参考）",
       "truthBranch": "main-local",
-      "lastPushedCommit": "d4d0f63",
+      "lastPushedCommit": "c761251",
       "lastPushedAt": "2026-11-13",
       "note": "两条历史无共同祖先；推送用 git push origin main:main-local"
     }
