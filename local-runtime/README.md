@@ -1,8 +1,29 @@
 # local-runtime · 本地运行环境
 
-把 kilk 2.0 在本地跑起来看效果，**不需要装 PostgreSQL**。
+把 kilk 2.0 在本地跑起来看效果，**不需要装 PostgreSQL 也能跑**。
 
-一个 Node 进程同时干四件事：托管构建产物、映射 `/upload/`、提供 `/api/*` 的 mock 接口、SPA 深链接回退。
+一个 Node 进程同时干四件事：托管构建产物、映射 `/upload/`、提供 `/api/*`、SPA 深链接回退。
+
+## 两种数据模式
+
+启动时会探测本地 `127.0.0.1:3001` 有没有后端在跑：
+
+| 情况 | `/api/*` 走向 | 登录账号 |
+|------|-------------|---------|
+| 3001 有后端（`server/src/index.js` 连本地 PostgreSQL） | 原样转发给后端，**看到的是数据库里的真实数据**，改动直接落库 | 库里的真实账号 |
+| 3001 没有后端 | 内存 mock（`data.mjs`），重启即还原 | `admin/admin123` 等 |
+
+强制指定：`USE_REAL_API=1` 一律转发，`USE_REAL_API=0` 一律 mock。
+
+想让预览看到真实数据，按顺序起三个东西：
+
+```powershell
+kit\scripts\localdb.cmd start                 # 1. 本地 PostgreSQL（端口 5432）
+cd server; node src/index.js                  # 2. 后端（端口 3001，DB_PASSWORD 从 .env 取）
+node local-runtime\server.mjs                 # 3. 预览（端口 5180）
+```
+
+真实模式下头像与附件不在本地，`/upload/*` 会 302 到 kilk.online 直取。
 
 ## 启动
 
@@ -16,7 +37,7 @@ node local-runtime\server.mjs
 
 如果 `dist/output` 不存在，`start.cmd` 会先跑一次构建。
 
-## 账号
+## 账号（仅 mock 模式）
 
 | 账号 | 密码 | 角色 | 能看到什么 |
 |------|------|------|-----------|
@@ -24,7 +45,7 @@ node local-runtime\server.mjs
 | `senior` | `senior123` | senior | 首页 / 酒店运维 / 公告 / 服务 / 名片 |
 | `user` | `user123` | user | 公开页面，进不去酒店运维 |
 
-## 数据
+## 数据（mock 模式）
 
 全部在内存里（`data.mjs`），**重启即还原**。已铺好：
 
@@ -78,6 +99,10 @@ node local-runtime/build.mjs
 ```
 
 ## 和线上的差别
+
+真实数据模式（3001 有后端）下，接口、鉴权、权限、JWT、bcrypt 全部走真后端，与线上只差「数据库是本地的」和「静态站点是本地产物」。
+
+mock 模式（3001 没后端）下：
 
 - 没有真实数据库，接口是内存实现，重启丢数据
 - 没有 JWT 签名与 bcrypt，密码明文比对（仅本地）

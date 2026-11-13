@@ -7,6 +7,10 @@
  *   3. 上传目录   /upload/*    → local-runtime/uploads
  *   4. mock API   /api/*       → 内存数据（data.mjs），行为对齐 server/src/routes
  *
+ * 真实数据模式：若本地 3001 端口有后端在跑（server/src/index.js 连本地 PG），
+ * /api/* 自动转发给它，看到的就是数据库里的真实数据；没有后端则退回 mock 数据。
+ * 用 USE_REAL_API=0 强制 mock，USE_REAL_API=1 强制转发。
+ *
  * 用法：node local-runtime/server.mjs   （或双击 start.cmd）
  */
 
@@ -24,6 +28,40 @@ const ASSETS_DIR = path.join(ROOT, 'dist', 'output_resource', 'assets');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 const PORT = Number(process.env.PORT || 5180);
 const HOST = '127.0.0.1';
+const BACKEND = process.env.BACKEND_ORIGIN || 'http://127.0.0.1:3001';
+
+// 上游后端可用性探测：决定 /api/* 走真实数据还是 mock
+let useRealApi = false;
+function probeBackend() {
+  return new Promise((resolve) => {
+    const req = http.get(`${BACKEND}/api/health`, { timeout: 1200 }, (res) => {
+      res.resume();
+      resolve(res.statusCode === 200);
+    });
+    req.on('timeout', () => { req.destroy(); resolve(false); });
+    req.on('error', () => resolve(false));
+  });
+}
+if (process.env.USE_REAL_API === '1') useRealApi = true;
+else if (process.env.USE_REAL_API !== '0') useRealApi = await probeBackend();
+
+// 把 /api/* 原样转发给本地后端（含 multipart 上传与鉴权头）
+function proxyToBackend(req, res, pathname, search) {
+  const target = new URL(pathname + search, BACKEND);
+  const headers = { ...req.headers, host: target.host };
+  const upstream = http.request(
+    { hostname: target.hostname, port: target.port, path: target.pathname + target.search, method: req.method, headers },
+    (up) => {
+      res.writeHead(up.statusCode || 502, up.headers);
+      up.pipe(res);
+    }
+  );
+  upstream.on('error', (err) => {
+    res.writeHead(502, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ ok: false, msg: `后端不可达：${err.message}` }));
+  });
+  req.pipe(upstream);
+}
 
 const store = createStore();
 const sessions = new Map(); // token -> userId
@@ -848,7 +886,13 @@ const server = http.createServer(async (req, res) => {
   // 静态：上传目录
   if (pathname.startsWith('/upload/')) {
     const target = safeJoin(UPLOAD_DIR, pathname.slice('/upload/'.length));
-    return target ? serveFile(res, target) : fail(res, 400, '非法路径');
+    if (target && fs.existsSync(target)) return serveFile(res, target);
+    // 真实模式下，头像与附件在线上 Apache 的 /upload/ 里，直接跳过去
+    if (useRealApi) {
+      res.writeHead(302, { Location: `https://kilk.online${pathname}` });
+      return res.end();
+    }
+    return target ? fail(res, 404, '文件不存在') : fail(res, 400, '非法路径');
   }
 
   // 静态：构建资源
@@ -866,7 +910,10 @@ const server = http.createServer(async (req, res) => {
     return serveFile(res, path.join(STATIC_DIR, 'index.html'));
   }
 
-  // API
+  // API：本地后端在线时转发，看到的是数据库真实数据
+  if (useRealApi) return proxyToBackend(req, res, pathname, url.search);
+
+  // API（mock）
   let body = {};
   let raw = Buffer.alloc(0);
   const contentType = req.headers['content-type'] || '';
@@ -903,7 +950,14 @@ server.listen(PORT, HOST, () => {
   console.log('  kilk 2.0 本地预览已启动');
   console.log(`  地址：http://${HOST}:${PORT}`);
   console.log(`  站点：${STATIC_DIR}`);
-  console.log('  账号：admin/admin123（超管）  senior/senior123（高级）  user/user123（普通）');
-  console.log('  数据在内存中，重启即还原；Ctrl+C 结束。');
+  if (useRealApi) {
+    console.log(`  数据：真实后端 ${BACKEND}（本地 PostgreSQL 的 kilk 库）`);
+    console.log('        账号用库里的真实账号密码登录，改动会写进数据库。');
+  } else {
+    console.log('  数据：mock（内存，重启即还原）');
+    console.log('        账号：admin/admin123（超管）  senior/senior123（高级）  user/user123（普通）');
+    console.log('        想接真实数据：先起 server 后端（3001）再启动本服务。');
+  }
+  console.log('  Ctrl+C 结束。');
   console.log('');
 });
