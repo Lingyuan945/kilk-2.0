@@ -1,0 +1,9 @@
+# 批处理脚本必须保持 CRLF，否则 cmd.exe 会报「命令语法不正确」
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 这些二进制与导出文件永远不做换行转换
+*.png binary
+*.jpg binary
+*.ico binary
+*.dump binary

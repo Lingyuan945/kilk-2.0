@@ -60,10 +60,35 @@ $env:VITE_API_BASE = '/api'
 
 ## 第 8 分钟 · 认清环境限制
 
-- 本机**没有数据库**，后端跑不起来，本地不做接口联调。
-- 本地能做的验证：类型检查、构建、静态页预览、无头截图。
-- 数据相关验证只能在服务器侧做。
+- 本机**已经有数据库**：PostgreSQL 16.15 便携版，装在 `kit/private/tools/pg16/pgsql`，数据目录 `kit/private/pgdata`，端口 5432，库名 `kilk`，账号密码取自 `server/.env`。
+- 启停用 `kit\scripts\localdb.cmd`（start / stop / status / psql / restore），不需要装 PostgreSQL，也不需要 Docker。
+- 后端可以在本地起：`cd server` 后设好 `DB_PASSWORD`（从 `.env` 读）再 `node src/index.js`，接口打到 3001。
 - 编码坑：PowerShell 5.1 读 UTF-8 要加 `-Encoding UTF8`。
+
+## 第 8.5 分钟 · 本地库以服务器为准
+
+线上是唯一真值源。本地库任何时候都通过与线上导出文件对齐，不要手工改本地数据后往线上推。
+
+```bash
+# 1. 服务器导出（在服务器上执行）
+sudo -u postgres pg_dump -d kilk -Fc --no-owner --no-privileges -f /tmp/kilk.dump
+sudo -u postgres pg_dump -d kilk --no-owner --no-privileges -f /tmp/kilk.sql
+
+# 2. 拉回本地（server/data-export 已在 .gitignore 里）
+scp admin@120.25.179.176:/tmp/kilk.dump server/data-export/
+scp admin@120.25.179.176:/tmp/kilk.sql  server/data-export/
+
+# 3. 重建本地库
+kit\scripts\localdb.cmd restore
+```
+
+`server/data-export/` 含密码哈希，**永不提交**；服务器侧的 `/tmp/kilk.*` 导出完立刻删。
+
+校验是否真的一致（比行数不够，要比内容指纹）：
+
+```sql
+select 'user'||md5(string_agg(t::text,'|' order by id)) from "user" t;  -- 逐表跑
+```
 
 ## 第 9 分钟 · 确认改动流程
 
@@ -80,7 +105,8 @@ powershell -ExecutionPolicy Bypass -File ".\kit\scripts\snapshot.ps1" -Label "�
 ## 交接自检
 
 - [ ] 我知道哪三个文件不能改
-- [ ] 我知道 9 处历史类型错误不是我的锅，但也不能增加
+- [ ] 我知道 tsc 基线是 0 错误，新增一处就算我头上
+- [ ] 我知道本地库用 `localdb.cmd` 启停，且以服务器为准
 - [ ] 我知道前端要双 tar 部署，后端改了要重启
 - [ ] 我知道密钥和备份在 `kit/private/`，不能提交
 - [ ] 我知道用户要中文、不要 emoji、视觉克制
