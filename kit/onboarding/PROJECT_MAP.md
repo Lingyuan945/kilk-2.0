@@ -71,6 +71,17 @@ src/
 ## 三、后端结构
 
 ```
+server/
+├── src/          运行时代码（入口、配置、路由、中间件）
+├── db/           数据库脚本：kilk_db_dump.sql（含数据，已忽略）、supabase_schema.sql（表结构）
+├── deploy/       历史部署脚本 deploy-server*.sh（在服务器上执行）
+├── scripts/      一次性迁移/校验脚本 .mjs（非运行时依赖）
+├── public/       运行后端的公开目录（upload 落盘处）
+├── .env          本机数据库/JWT 配置（不生效，见环境事实）
+└── package.json  后端依赖
+```
+
+```
 server/src/
 ├── index.js      入口：cors → json → /api/health → 各路由 → 404 → 错误处理 → initDatabase() → listen
 ├── config.js     环境变量（无 dotenv，本地 .env 不生效）
@@ -116,7 +127,7 @@ server/src/
 
 | 表 | 来源 | 用途 |
 |----|------|------|
-| `user` | 仅 `server/kilk_db_dump.sql` / `supabase_schema.sql` | 账号、角色、头像、部门、工号 |
+| `user` | 仅 `server/db/kilk_db_dump.sql` / `server/db/supabase_schema.sql` | 账号、角色、头像、部门、工号 |
 | `hotels` | `init.js` 自建 | 多酒店元数据 + JSONB 配置 |
 | `hotel_incident` | `init.js` 自建 | 故障记录（按 hotel_id 隔离） |
 | `notice` | `init.js` 自建 | 公告 |
@@ -157,7 +168,7 @@ server/src/
 | SSH | `%USERPROFILE%\.ssh\id_ed25519` 已就绪；GitHub 与服务器均免密 |
 | 无头浏览器 | Edge `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`，`puppeteer-core` 可用 |
 | 编码 | PowerShell 5.1 读 UTF-8 需 `-Encoding UTF8`，否则乱码 |
-| 沙箱 | 受限模式下 MSYS 程序无法建命名管道（git 网络操作需完全权限） |
+| 沙箱 | 受限模式下 MSYS 程序无法建命名管道；`vite build` 会 `spawn EPERM`，`git push/fetch` 会失败——两者都需要完全权限；`tsc`、`git status/log/commit` 在沙箱内正常 |
 
 ## 六、三端状态（2026-11-13 核对）
 

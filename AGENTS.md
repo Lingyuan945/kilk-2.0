@@ -49,6 +49,7 @@ powershell -ExecutionPolicy Bypass -File ".\kit\scripts\snapshot.ps1" -Label "�
 
 ## 当前状态（2026-11-13）
 
-- 本地：`main` 分支，工作区干净；构建产物 `dist/output` 与线上 `index-IaKZUkHv.js` 一致。
-- 服务器：`kilk2` active，`/api/health` 正常。
-- GitHub：停在 2026-09-16（`b740184`），与本地是**两条无共同祖先的历史**；本地内容更全，推送前需按 `kit/README.md` 的备份策略处理，不要直接 `push --force`。
+- 本地：`main` 分支，工作区干净；`dist/output` 为 2026-11-13 用 Node 24 重新构建（`index-DeNIHwpd.js`），与线上正在服务的 `index-IaKZUkHv.js` 源码一致、构建指纹不同。
+- 服务器：`kilk2` active，`/api/health` 正常，线上仍为 10-06 构建的产物。
+- GitHub：`main` 停在 2026-09-16（`b740184`），本地已推送 `main-local`（`4ee4136`）并给旧 main 打了 `archive/github-main-20260916` 标签；两条历史无共同祖先，切换默认分支前先看 `kit/README.md`。
+- 环境限制：`tsc`、`git status/log/commit` 可在受限沙箱内执行；`vite build` 与 `git push/fetch` 需要完全权限（命名管道限制）。

@@ -45,6 +45,8 @@ $env:VITE_API_BASE = '/api'
 
 会重写 `dist/output` 与 `dist/output_resource`（两者需同时部署）。
 
+注意：在受沙箱限制的执行环境里，`vite build` 会因内部子进程管道限制报 `spawn EPERM`，**需要完全权限执行**；`tsc` 不受影响。
+
 ## 第 5 分钟 · 读项目地图
 
 `kit/onboarding/PROJECT_MAP.md`：运行链路、路由与权限、页面职责、后端接口、数据表、已知问题。

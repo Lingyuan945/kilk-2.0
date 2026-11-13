@@ -44,6 +44,8 @@ $env:VITE_API_BASE = '/api'
 
 产物：`dist/output`（index.html + public 同源文件 + routes.json）与 `dist/output_resource/assets`。**两个目录必须同时部署**，只部署 `output` 会导致线上白屏。
 
+> 沙箱注意：受限模式下构建会报 `spawn EPERM`（vite 内部要起子进程抓输出），需完全权限执行；类型检查与 git 的本地操作不需要。
+
 ## 第 5 步 · 验证
 
 - 静态检查：`kit/scripts/build.ps1 -Typecheck`

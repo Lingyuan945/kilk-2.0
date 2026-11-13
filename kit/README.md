@@ -18,8 +18,10 @@
 | `kit/private/tools/` | 便携 Git（388MB，PortableGit 2.56.1） | **禁止** |
 | `kit/private/keys/` | SSH 私钥副本与公钥、known_hosts | **禁止** |
 | `kit/private/backups/` | 每次完整更新的快照文件夹 | **禁止** |
-| `kit/private/sandbox/` | 沙箱 ACL 诊断报告与修复记录 | **禁止** |
-| `kit/private/state/` | 本机状态记录（最近备份、环境探测结果） | **禁止** |
+| `kit/private/history/` | 历史维护记录（`maintenance/` 的截图与脚本） | **禁止** |
+| `kit/private/archive/` | 归档：旧部署包、废弃 PGlite 数据、数据导出、临时 token | **禁止** |
+| `kit/private/state/` | 本机状态：最近备份指针、日志 | **禁止** |
+| `kit/private/sandbox/` | 沙箱 ACL 诊断报告与修复脚本 | **禁止** |
 
 `.gitignore` 已忽略 `kit/private/`，因此**上传与不同步两类文件物理上在同一个文件夹，但提交时会自动分开**。新增私有文件一律放进 `kit/private/`。
 

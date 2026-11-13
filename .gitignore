@@ -102,7 +102,7 @@ server/data-export/
 
 # 部署临时产物
 server/*.tar.gz
-server/kilk_db_dump.sql
+server/db/kilk_db_dump.sql
 server/db_dump.sql
 
 # 本地维护目录（验证截图/临时脚本/进度文件，不进仓库）
