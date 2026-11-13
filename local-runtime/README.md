@@ -4,6 +4,8 @@
 
 一个 Node 进程同时干四件事：托管构建产物、映射 `/upload/`、提供 `/api/*`、SPA 深链接回退。
 
+> 本机 PATH 里没有 `node`，下文所有 `node xxx` 都要换成固定路径（或先执行 `$NODE = "C:\Users\Administrator\.dsh\dsh-runtimes\dsh-primary-runtime\dependencies\node\bin\node.exe"` 再写 `& $NODE xxx`）。
+
 ## 两种数据模式
 
 启动时会探测本地 `127.0.0.1:3001` 有没有后端在跑：

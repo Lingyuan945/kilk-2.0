@@ -2,10 +2,11 @@
   "project": "kilk 2.0",
   "kind": "team-platform",
   "updated": "2026-11-13",
+  "statusSource": "AGENTS.md 第 2 节（唯一状态真值源，其他文档不重复写状态）",
   "localRoot": "G:\\IT-08\\Github\\kilk 2.0",
   "entry": "AGENTS.md",
   "ends": {
-    "local": "唯一源码真值源",
+    "local": "源码真值源",
     "server": {
       "host": "120.25.179.176",
       "user": "admin",
@@ -13,51 +14,83 @@
       "frontend": "/var/www/kilk2/frontend",
       "backend": "/var/www/kilk2/src",
       "service": "kilk2",
+      "uploadDir": "/var/www/kilk2/public/upload",
+      "dbOwner": "postgres（应用账号 kilk 只有 DML 权限，DDL 会报 42501）",
       "auth": "ssh key (verified 2026-11-13)"
     },
     "github": {
       "repo": "git@github.com:Lingyuan945/kilk-2.0.git",
       "visibility": "public",
       "auth": "ssh key (verified 2026-11-13)",
-      "lastPushedCommit": "b740184",
-      "lastPushedAt": "2026-09-16",
-      "note": "与本地无共同祖先，本地内容为其超集，推送需先建分支备份"
+      "defaultBranch": "main（9-16 的论坛版，不是现网代码，勿参考）",
+      "truthBranch": "main-local",
+      "lastPushedCommit": "d4d0f63",
+      "lastPushedAt": "2026-11-13",
+      "note": "两条历史无共同祖先；推送用 git push origin main:main-local"
     }
   },
   "folders": [
-    { "path": "kit/specs", "purpose": "项目规范", "upload": true },
+    { "path": "kit/specs", "purpose": "项目规范（架构/业务规则/经验）", "upload": true },
     { "path": "kit/rules", "purpose": "智能体硬约束/流程/验收", "upload": true },
     { "path": "kit/onboarding", "purpose": "快速上手与项目地图", "upload": true },
-    { "path": "kit/scripts", "purpose": "构建/链路验证/快照/git 包装", "upload": true },
-    { "path": "kit/private/tools", "purpose": "便携 Git 2.56.1", "upload": false },
+    { "path": "kit/scripts", "purpose": "构建/链路验证/快照/本地库启停/git 包装", "upload": true },
+    { "path": "local-runtime", "purpose": "本地预览环境：静态托管 + mock/转发 API", "upload": true },
+    { "path": "kit/private/tools", "purpose": "便携 Git 2.56.1 + PostgreSQL 16.15", "upload": false },
+    { "path": "kit/private/pgdata", "purpose": "本地 PostgreSQL 数据目录（含真实数据副本）", "upload": false },
     { "path": "kit/private/keys", "purpose": "SSH 私钥副本与公钥", "upload": false },
     { "path": "kit/private/backups", "purpose": "每次完整更新的快照", "upload": false },
     { "path": "kit/private/sandbox", "purpose": "沙箱 ACL 诊断记录", "upload": false },
-    { "path": "kit/private/state", "purpose": "本机状态与最近备份指针", "upload": false }
+    { "path": "kit/private/state", "purpose": "本机状态与最近备份指针", "upload": false },
+    { "path": "server/data-export", "purpose": "从服务器导出的数据库文件（含密码哈希）", "upload": false }
   ],
   "tools": {
     "node": "C:\\Users\\Administrator\\.dsh\\dsh-runtimes\\dsh-primary-runtime\\dependencies\\node\\bin\\node.exe",
     "npm": "C:\\Users\\Administrator\\.workbuddy\\binaries\\node\\versions\\22.22.2-6\\npm.cmd",
     "git": "kit\\private\\tools\\PortableGit\\cmd\\git.exe",
+    "postgres": "kit\\private\\tools\\pg16\\pgsql\\bin",
     "edge": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe"
   },
   "environment": {
-    "postgres": "未安装（本地后端无法启动）",
+    "node": "v24（DSH 自带）",
+    "postgres": "已装 PostgreSQL 16.15 便携版；数据目录 kit/private/pgdata；端口 5432；库 kilk；默认不启动",
+    "backendEnv": "无 dotenv，启动前必须手动设置 DB_PASSWORD，否则回退 postgres/postgres",
     "shell": "Windows PowerShell 5.1",
-    "encoding": "UTF-8；PowerShell 读文件需 -Encoding UTF8",
-    "sandbox": "受限模式下 MSYS 无法创建命名管道，git 网络操作需完全权限"
+    "encoding": "UTF-8；PowerShell 读文件需 -Encoding UTF8；.cmd 必须 CRLF + 纯 ASCII",
+    "sandbox": "受限模式下 vite build 报 spawn EPERM、git push/fetch 失败，需完全权限"
   },
   "commands": {
-    "typecheck": "& $NODE node_modules/typescript/bin/tsc -p tsconfig.app.json",
-    "build": "$env:VITE_API_BASE='/api'; & $NODE node_modules/vite/bin/vite.js build",
+    "status": "powershell -ExecutionPolicy Bypass -File .\\kit\\scripts\\status.ps1  （一键体检，输出比文档准）",
+    "typecheck": "& $NODE node_modules/typescript/bin/tsc -p tsconfig.app.json  （基线 0 错误）",
+    "build": "& $NODE local-runtime\\build.mjs  （勿在 Git Bash 里 export VITE_API_BASE，会被 MSYS 改写）",
+    "preview": "& $NODE local-runtime\\server.mjs  → http://127.0.0.1:5180",
+    "localDb": "kit\\scripts\\localdb.cmd start | stop | status | psql | restore",
+    "backend": "cd server; $env:DB_PASSWORD=<from .env>; & $NODE src/index.js",
+    "deployFrontend": "双 tar：dist/output 与 dist/output_resource 同时解压到 /var/www/kilk2/frontend",
+    "deployBackend": "scp 改动的 js → cp 到位 → sudo systemctl restart kilk2 → 看 journalctl",
     "snapshot": "powershell -ExecutionPolicy Bypass -File .\\kit\\scripts\\snapshot.ps1 -Label \"...\"",
     "verifyLinks": "powershell -ExecutionPolicy Bypass -File .\\kit\\scripts\\verify-links.ps1"
   },
   "knownIssues": {
-    "typecheckErrors": 9,
-    "missingDdl": ["developers"],
-    "unauthenticatedUpload": ["POST /api/hotel/upload"],
-    "deadCode": ["src/pages/AdminPage/LingTab.tsx", "server/src/routes/admin.js#forum-routes"],
+    "typecheckErrors": 0,
+    "open": [
+      "POST /api/hotel/upload 无鉴权（唯一安全项）",
+      "线上 assets 1051 文件 / 27MB 历史残留 chunk",
+      "GitHub 默认分支仍指向 9 月论坛版",
+      "线上孤儿表 ling_profile 仍留 1 行",
+      "ServiceTab 版本列表操作后不刷新（旧闭包）",
+      "autoBuilding 只取房间号首位数字，与后台多位编号不一致",
+      "运维看板用已筛选后的数据聚合",
+      "权限主要靠前端守卫",
+      "HotelDetailPage.tsx 1065 行待拆分"
+    ],
+    "fixed": [
+      "tsc 8 处历史错误（2026-11-13 清零）",
+      "LingTab.tsx 死代码与 admin.js 论坛接口（已删）",
+      "DELETE /api/admin/users/:id 删论坛表导致 500（已修）",
+      "developers 表缺 DDL（init.js + supabase_schema.sql 已补齐）",
+      "init.js 裸 DDL 导致启动崩溃（已改为 safeExec 容错）",
+      "AuthModal 缺 TabsList（已补）"
+    ],
     "orphanTables": ["ling_profile"]
   }
 }
